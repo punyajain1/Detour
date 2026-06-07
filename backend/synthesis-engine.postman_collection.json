@@ -1,0 +1,297 @@
+{
+  "info": {
+    "name": "Synthesis Engine API",
+    "description": "Anti-doom-scroll knowledge app — full API test suite.\n\nSetup:\n1. Set the `baseUrl` variable to http://localhost:4000\n2. Register a user → the token is auto-saved to the `token` variable\n3. All protected routes will use it automatically",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "trailId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health",
+            "description": "Verify the server is running"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('token', body.token);",
+                  "  console.log('Token saved:', body.token.slice(0, 20) + '...');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@synthesis.app\",\n  \"username\": \"testuser\",\n  \"password\": \"securepassword123\"\n}"
+            },
+            "description": "Register a new user. Token is auto-saved to the `token` variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('token', body.token);",
+                  "  console.log('Token saved:', body.token.slice(0, 20) + '...');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@synthesis.app\",\n  \"password\": \"securepassword123\"\n}"
+            },
+            "description": "Login and get JWT token. Token is auto-saved."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "Get the authenticated user's profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Register — Duplicate Email (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@synthesis.app\",\n  \"username\": \"anotheruser\",\n  \"password\": \"securepassword123\"\n}"
+            },
+            "description": "Should return 409 — email already taken"
+          },
+          "response": []
+        },
+        {
+          "name": "Login — Wrong Password (expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@synthesis.app\",\n  \"password\": \"wrongpassword\"\n}"
+            },
+            "description": "Should return 401"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Trail",
+      "item": [
+        {
+          "name": "Get Today's Trail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('trailId', body.id);",
+                  "  console.log('Trail ID saved:', body.id);",
+                  "  console.log('Steps count:', body.steps.length);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/trail/today",
+            "description": "Returns today's trail. Generates it on-demand if not yet built (first call may take 3–5 seconds as it hits 5 external APIs)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trail by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/trail/{{trailId}}",
+            "description": "Get a specific trail by UUID. trailId is auto-saved from the Today request."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trail History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/trail/history",
+            "description": "All trails the user has completed, newest first"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trail — No Auth (expect 401)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/trail/today",
+            "description": "Should return 401 — no token provided"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Completion",
+      "item": [
+        {
+          "name": "Check Completion Status",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/completion/status",
+            "description": "Check if current user has completed today's trail"
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Synthesis Answer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/completion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trailId\": \"{{trailId}}\",\n  \"synthesisAnswer\": \"All five things share a common thread around how humans deal with complexity — whether in algorithms, open-source tools, space phenomena, or programming debates. The underlying pattern is the desire to find elegant order within vast, overwhelming systems.\",\n  \"timeSpentSecs\": 180\n}"
+            },
+            "description": "Submit synthesis. Answer must be 30+ chars. Use the trailId saved from 'Get Today's Trail'."
+          },
+          "response": []
+        },
+        {
+          "name": "Submit — Answer Too Short (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/completion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trailId\": \"{{trailId}}\",\n  \"synthesisAnswer\": \"Too short\",\n  \"timeSpentSecs\": 5\n}"
+            },
+            "description": "Should return 400 — synthesisAnswer must be at least 30 characters"
+          },
+          "response": []
+        },
+        {
+          "name": "Submit — Duplicate Completion (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/completion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trailId\": \"{{trailId}}\",\n  \"synthesisAnswer\": \"Trying to submit a second time — this should be rejected by the server.\",\n  \"timeSpentSecs\": 10\n}"
+            },
+            "description": "Should return 409 — one completion per trail per user enforced"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Knowledge Graph",
+      "item": [
+        {
+          "name": "Get My Graph",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/graph/me",
+            "description": "Returns all knowledge nodes and edges for the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Graph Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/graph/stats",
+            "description": "Summary stats: total nodes, edges, domain breakdown"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Manually Generate Trail",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-admin-secret", "value": "change_this_to_a_long_random_string_in_production" }
+            ],
+            "url": "{{baseUrl}}/api/admin/generate",
+            "description": "Manually trigger trail generation (dev/testing only). x-admin-secret must match JWT_SECRET in .env.\n\nNOTE: If a trail already exists for today, it returns the existing one."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

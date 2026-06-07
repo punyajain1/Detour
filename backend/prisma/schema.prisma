@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// USERS
+// ─────────────────────────────────────────────
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  username     String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// FEED CARDS — Stored directly in the database
+// ─────────────────────────────────────────────
+model FeedCard {
+  id          String   @id @default(uuid())
+  type        String // nasa_apod, github, hackernews, etc.
+  category    String // space, programming, startups, ai, science
+  title       String
+  description String
+  url         String?
+  imageUrl    String?
+  metadata    Json
+  fetchedAt   DateTime @default(now())
+
+  @@index([category, fetchedAt(sort: Desc)])
+  @@map("feed_cards")
+}
