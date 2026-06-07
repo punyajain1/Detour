@@ -88,33 +88,19 @@ npm run dev
 
 ## 🏗️ Architecture & Data Flow
 
-```mermaid
-graph TD
-    subgraph ExternalAPIs[External APIs]
-        NASA(NASA APIs)
-        GitHub(GitHub Trending)
-        HN(HackerNews)
-        LC(LeetCode)
-        JWST(JWST Images)
-    end
+Detour is powered by a robust backend that handles all the heavy lifting, ensuring the frontend client is incredibly fast and completely distraction-free.
 
-    subgraph Backend[Backend - Node.js + Express]
-        CronJob[feed-sync.job.ts] -->|Fetch every 6 hours| ExternalAPIs
-        CronJob -->|Normalize & Insert| DB[(PostgreSQL Database)]
-        CronJob -->|Auto-prune > 24h| DB
-        API[Express API] -->|Query| DB
-    end
+### 1. The Data Ingestion Engine (Cron)
+Every 6 hours, the Express/Node.js backend fires off a suite of parallel requests to 3rd-party APIs (NASA, GitHub, HackerNews, LeetCode, etc.). This ensures we respect API rate limits while keeping the content fresh.
 
-    subgraph Frontend[Frontend - Next.js App Router]
-        UI[InfiniteFeed UI] -->|Fetch Batch| API
-        Card[FeedCardComponent] --- UI
-    end
-```
+### 2. Normalization
+Since an astronomy photo from NASA looks very different from a trending repository on GitHub, the backend normalizes all disparate JSON payloads into a single, unified `FeedCard` data structure.
 
-1. **The Cron Job (`feed-sync.job.ts`)**: Every 6 hours, the backend fires off parallel requests to all registered 3rd-party APIs (NASA, GitHub, HackerNews, LeetCode, etc.).
-2. **Normalization**: The disparate JSON payloads are mapped into a unified `FeedCard` structure.
-3. **Storage**: Cards are batch-inserted into the PostgreSQL `feed_cards` table via Prisma. Old cards (>24 hours) are purged to ensure content remains fresh.
-4. **Client Consumption**: The Next.js frontend fetches these cards using an infinite scrolling mechanism (`InfiniteFeed.tsx`) and displays them in a distraction-free, animated UI (`FeedCardComponent.tsx`).
+### 3. Smart Storage & Auto-Pruning
+These normalized cards are batch-inserted into a PostgreSQL database using Prisma. To keep the app lightning fast and ensure you're only ever seeing new, relevant information, a scheduled job automatically purges any cards older than 24 hours.
+
+### 4. Client Consumption
+The Next.js frontend continuously pulls batches of these unified cards via an Express API. The content is then rendered using an `InfiniteFeed` component, utilizing Framer Motion for buttery-smooth scrolling and card reveal animations.
 
 ---
 *Escape the doom-scroll. Take a Detour.*
