@@ -1,5 +1,5 @@
 import React from 'react';
-import { FeedCard } from '../../../types/feed';
+import { FeedCard } from '../../types/feed';
 import { Orbit, Camera, Calendar, ArrowRight, AlertTriangle, Wind, Zap } from 'lucide-react';
 
 export const NasaCard: React.FC<{ card: FeedCard }> = ({ card }) => {

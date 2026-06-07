@@ -1,5 +1,5 @@
 import React from 'react';
-import { FeedCard } from '../../../types/feed';
+import { FeedCard } from '../../types/feed';
 import { ArrowUpRight, MessageSquare, TrendingUp } from 'lucide-react';
 
 export const HackerNewsCard: React.FC<{ card: FeedCard }> = ({ card }) => {

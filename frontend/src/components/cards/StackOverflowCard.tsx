@@ -1,5 +1,5 @@
 import React from 'react';
-import { FeedCard } from '../../../types/feed';
+import { FeedCard } from '../../types/feed';
 import { HelpCircle, ThumbsUp, MessageCircle, ArrowRight } from 'lucide-react';
 
 export const StackOverflowCard: React.FC<{ card: FeedCard }> = ({ card }) => {

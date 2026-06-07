@@ -1,5 +1,5 @@
 import React from 'react';
-import { FeedCard } from '../../../types/feed';
+import { FeedCard } from '../../types/feed';
 import { Terminal, Star, GitBranch, ArrowRight } from 'lucide-react';
 
 export const GithubCard: React.FC<{ card: FeedCard }> = ({ card }) => {

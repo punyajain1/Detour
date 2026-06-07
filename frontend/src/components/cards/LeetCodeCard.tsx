@@ -1,5 +1,5 @@
 import React from 'react';
-import { FeedCard } from '../../../types/feed';
+import { FeedCard } from '../../types/feed';
 import { Award, Code, CheckCircle, ArrowRight } from 'lucide-react';
 
 export const LeetCodeCard: React.FC<{ card: FeedCard }> = ({ card }) => {
