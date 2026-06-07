@@ -90,7 +90,7 @@ npm run dev
 
 ```mermaid
 graph TD
-    subgraph External APIs
+    subgraph ExternalAPIs[External APIs]
         NASA(NASA APIs)
         GitHub(GitHub Trending)
         HN(HackerNews)
@@ -98,14 +98,14 @@ graph TD
         JWST(JWST Images)
     end
 
-    subgraph Backend - Node.js + Express
-        CronJob[feed-sync.job.ts] -->|Fetch every 6 hours| External APIs
+    subgraph Backend[Backend - Node.js + Express]
+        CronJob[feed-sync.job.ts] -->|Fetch every 6 hours| ExternalAPIs
         CronJob -->|Normalize & Insert| DB[(PostgreSQL Database)]
         CronJob -->|Auto-prune > 24h| DB
         API[Express API] -->|Query| DB
     end
 
-    subgraph Frontend - Next.js App Router
+    subgraph Frontend[Frontend - Next.js App Router]
         UI[InfiniteFeed UI] -->|Fetch Batch| API
         Card[FeedCardComponent] --- UI
     end
