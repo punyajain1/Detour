@@ -34,7 +34,8 @@ model FeedCard {
   imageUrl    String?
   metadata    Json
   fetchedAt   DateTime @default(now())
+  sortOrder   Float    @default(0)
 
-  @@index([category, fetchedAt(sort: Desc)])
+  @@index([category, sortOrder(sort: Desc)])
   @@map("feed_cards")
 }

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { app } from './app';
 import { startFeedSyncJob } from './jobs/feed-sync.job';
+import { runShuffle } from './jobs/shuffle.job';
 import { prisma } from './lib/prisma';
 
 const PORT = Number(process.env.PORT ?? 4000);
@@ -18,7 +19,7 @@ async function main() {
   app.listen(PORT, () => {
     console.log(`
 ╔═══════════════════════════════════════╗
-║     Synthesis Engine Backend          ║
+║     Detour Backend                    ║
 ║     Running on port ${PORT}              ║
 ║     ENV: ${process.env.NODE_ENV ?? 'development'}               ║
 ╚═══════════════════════════════════════╝
@@ -26,6 +27,10 @@ async function main() {
 
     // Start the cron job for data fetching
     startFeedSyncJob();
+    
+    
+    // Also run it once immediately to initialize sortOrders
+    runShuffle().catch(console.error);
   });
 
   // Graceful shutdown

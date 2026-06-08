@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import { prisma } from '../lib/prisma';
+import { runShuffle } from './shuffle.job';
 import { v4 as uuid } from 'uuid';
 
 import { NasaIntegration } from '../integrations/nasa.integration';
@@ -87,6 +88,7 @@ export async function runFeedSync(sources?: string[]): Promise<SyncResult> {
     imageUrl:    c.imageUrl || null,
     metadata:    c.metadata ? JSON.parse(JSON.stringify(c.metadata)) : {},
     fetchedAt:   new Date(c.fetchedAt),
+    sortOrder:   Math.random(),
   }));
 
   const { count: inserted } = await prisma.feedCard.createMany({ data: dataToInsert });
@@ -95,6 +97,9 @@ export async function runFeedSync(sources?: string[]): Promise<SyncResult> {
   const { count: deleted } = await prisma.feedCard.deleteMany({
     where: { fetchedAt: { lt: cutoff } },
   });
+
+  // Automatically shuffle the entire database after new cards are inserted
+  await runShuffle();
 
   return { inserted, deleted, sources: keys, durationMs: Date.now() - start };
 }

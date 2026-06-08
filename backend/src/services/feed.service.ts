@@ -18,9 +18,6 @@ export class FeedService {
       decoded = null;
     }
 
-    const page = decoded?.page ?? 0;
-    const skip = page * pageSize;
-
     const whereClause: any = {};
     if (category !== 'all') {
       whereClause.category = category;
@@ -29,18 +26,57 @@ export class FeedService {
       whereClause.type = type;
     }
 
-    const cards = await prisma.feedCard.findMany({
+    const count = await prisma.feedCard.count({ where: whereClause });
+    if (count === 0) {
+      return { cards: [], nextCursor: null, hasMore: false, totalFetched: 0 };
+    }
+
+    let skip = 0;
+    let isWrapped = false;
+    
+    if (decoded && typeof decoded.page === 'number') {
+      skip = decoded.page;
+      isWrapped = decoded.seed === 'wrapped';
+    } else {
+      // Pick a random starting point in the feed
+      skip = Math.floor(Math.random() * count);
+    }
+
+    let pageCards = await prisma.feedCard.findMany({
       where: whereClause,
-      orderBy: { fetchedAt: 'desc' },
+      orderBy: { sortOrder: 'desc' },
       skip,
-      take: pageSize + 1, // take one extra to check if hasMore
+      take: pageSize,
     });
 
-    const hasMore = cards.length > pageSize;
-    const pageCards = hasMore ? cards.slice(0, pageSize) : cards;
+    let nextSkip = skip + pageCards.length;
+    let nextSeed = isWrapped ? 'wrapped' : '';
+    let hasMore = true;
+
+    // If we hit the end of the database, wrap around to the beginning to keep the feed infinite
+    if (pageCards.length < pageSize && !isWrapped) {
+      const remaining = pageSize - pageCards.length;
+      const wrappedCards = await prisma.feedCard.findMany({
+        where: whereClause,
+        orderBy: { sortOrder: 'desc' },
+        skip: 0,
+        take: remaining,
+      });
+      pageCards = [...pageCards, ...wrappedCards];
+      nextSkip = wrappedCards.length; // Continue pagination from the wrap-around point
+      nextSeed = 'wrapped';
+    }
+
+    // Stop if we wrapped around and hit the end again, or if the whole DB fits in one page
+    if (isWrapped && pageCards.length < pageSize) {
+      hasMore = false;
+    }
+    if (count <= pageSize) {
+      hasMore = false;
+    }
 
     const nextCursor = hasMore
-      ? encodeCursor({ page: page + 1, seed: '', category, type })
+      ? encodeCursor({ page: nextSkip, seed: nextSeed, category, type })
       : null;
 
     // Map Prisma models to FeedCard type
@@ -56,14 +92,11 @@ export class FeedService {
       metadata: c.metadata as any,
     }));
 
-    // In a real app we'd do a count query for totalFetched, or just mock it:
-    const totalFetched = await prisma.feedCard.count({ where: whereClause });
-
     return {
       cards: mappedCards,
       nextCursor,
       hasMore,
-      totalFetched,
+      totalFetched: count,
     };
   }
 
