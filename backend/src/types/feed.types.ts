@@ -13,7 +13,9 @@ export type FeedCardType =
   | 'hackernews'
   | 'stackoverflow'
   | 'space_news'
-  | 'jwst';
+  | 'jwst'
+  | 'arxiv'
+  | 'system_design';
 
 /** Base fields every card must have */
 interface FeedCardBase {
@@ -181,6 +183,39 @@ export interface JwstCard extends FeedCardBase {
   };
 }
 
+// ─── arXiv Papers ────────────────────────────
+
+export interface ArxivCard extends FeedCardBase {
+  type: 'arxiv';
+  category: 'science' | 'ai' | 'programming';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    authors: string[];
+    pdfUrl?: string;
+    publishedAt: string;
+    arxivCategory: string;
+  };
+}
+
+// ─── System Design ─────────────────────────────
+
+export interface SystemDesignCard extends FeedCardBase {
+  type: 'system_design';
+  category: 'programming';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    source: 'engineering_blog' | 'hackernews' | 'arxiv_paper';
+    authorOrCompany: string;
+    publishedAt?: string;
+    readingTimeMinutes?: number;
+    tags?: string[];
+  };
+}
+
 // ─────────────────────────────────────────────
 // Union & Pagination
 // ─────────────────────────────────────────────
@@ -194,7 +229,9 @@ export type FeedCard =
   | HackerNewsCard
   | StackOverflowCard
   | SpaceNewsCard
-  | JwstCard;
+  | JwstCard
+  | ArxivCard
+  | SystemDesignCard;
 
 export interface FeedPage {
   cards: FeedCard[];
@@ -298,4 +335,26 @@ export interface JWSTData {
   file_type: string;
   thumbnail: string;
   location: string;
+}
+
+export interface ArxivData {
+  id: string;
+  title: string;
+  summary: string;
+  published_at: string;
+  authors: string[];
+  pdf_url?: string;
+  html_url: string;
+  category: string;
+}
+
+export interface SystemDesignData {
+  id: string;
+  title: string;
+  summary: string;
+  url: string;
+  sourceType: 'engineering_blog' | 'hackernews' | 'arxiv_paper';
+  authorOrCompany: string;
+  published_at?: string;
+  tags?: string[];
 }

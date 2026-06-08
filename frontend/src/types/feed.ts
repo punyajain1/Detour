@@ -9,7 +9,9 @@ export type FeedCardType =
   | 'hackernews'
   | 'stackoverflow'
   | 'space_news'
-  | 'jwst';
+  | 'jwst'
+  | 'arxiv'
+  | 'system_design';
 
 export interface FeedCardBase {
   id: string;
@@ -115,6 +117,35 @@ export interface JwstCard extends FeedCardBase {
   };
 }
 
+export interface ArxivCard extends FeedCardBase {
+  type: 'arxiv';
+  category: 'science' | 'ai' | 'programming';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    authors: string[];
+    pdfUrl?: string;
+    publishedAt: string;
+    arxivCategory: string;
+  };
+}
+
+export interface SystemDesignCard extends FeedCardBase {
+  type: 'system_design';
+  category: 'programming';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    source: 'engineering_blog' | 'hackernews' | 'arxiv_paper';
+    authorOrCompany: string;
+    publishedAt?: string;
+    readingTimeMinutes?: number;
+    tags?: string[];
+  };
+}
+
 // Fallback generic card for the rest
 export interface GenericNasaCard extends FeedCardBase {
   type: 'nasa_mars' | 'nasa_neows';
@@ -133,7 +164,9 @@ export type FeedCard =
   | LeetCodeCard
   | SpaceNewsCard
   | JwstCard
-  | GenericNasaCard;
+  | GenericNasaCard
+  | ArxivCard
+  | SystemDesignCard;
 
 export interface FeedPage {
   cards: FeedCard[];

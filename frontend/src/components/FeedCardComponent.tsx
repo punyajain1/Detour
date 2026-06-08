@@ -7,6 +7,8 @@ import { HackerNewsCard } from './cards/HackerNewsCard';
 import { LeetCodeCard } from './cards/LeetCodeCard';
 import { NasaCard } from './cards/NasaCard';
 import { StackOverflowCard } from './cards/StackOverflowCard';
+import { ArxivCard } from './cards/ArxivCard';
+import { SystemDesignCard } from './cards/SystemDesignCard';
 
 interface FeedCardProps {
   card: FeedCard;
@@ -25,6 +27,8 @@ export const FeedCardComponent: React.FC<FeedCardProps> = ({ card }) => {
     if (card.type === 'leetcode') return <LeetCodeCard card={card} />;
     if (card.type === 'stackoverflow') return <StackOverflowCard card={card} />;
     if (card.type.startsWith('nasa') || card.type === 'space_news' || card.type === 'jwst') return <NasaCard card={card} />;
+    if (card.type === 'arxiv') return <ArxivCard card={card} />;
+    if (card.type === 'system_design') return <SystemDesignCard card={card} />;
     
     return null;
   };

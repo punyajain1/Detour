@@ -56,6 +56,8 @@ export class FeedController {
         'stackoverflow',
         'space_news',
         'jwst',
+        'arxiv',
+        'system_design',
       ],
     };
     res.json(response);
@@ -99,7 +101,7 @@ export class FeedController {
    *
    * Available source keys:
    *   nasa_apod | nasa_mars | nasa_neows | github |
-   *   hackernews | stackoverflow | leetcode | space_news | jwst
+   *   hackernews | stackoverflow | leetcode | space_news | jwst | arxiv | system_design
    */
   static async forceFetch(req: Request, res: Response): Promise<void> {
     const rawSources: unknown = req.body?.sources;

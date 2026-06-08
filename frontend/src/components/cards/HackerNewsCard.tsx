@@ -1,73 +1,99 @@
 import React from 'react';
 import { FeedCard } from '../../types/feed';
-import { ArrowUpRight, MessageSquare, TrendingUp } from 'lucide-react';
+import { ArrowUpRight, MessageSquare, TrendingUp, Clock, Link2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export const HackerNewsCard: React.FC<{ card: FeedCard }> = ({ card }) => {
   const md: any = card.metadata || {};
 
   return (
-    <div style={{
-      background: '#111111',
-      border: '1px solid #333',
-      borderRadius: '24px',
-      width: '100%',
-      maxWidth: '560px',
-      height: '100%',
-      maxHeight: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      padding: '32px',
-      fontFamily: 'var(--font-sans)',
-      position: 'relative'
-    }}>
-      {/* Orange accent tag */}
-      <div style={{ display: 'inline-flex', alignSelf: 'flex-start', background: '#ff6600', color: 'white', padding: '6px 12px', borderRadius: '4px', fontWeight: 800, fontSize: '0.8rem', letterSpacing: '0.05em', marginBottom: '32px' }}>
-        Y COMBINATOR
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ y: -5, boxShadow: '8px 8px 0px #ff6600' }}
+      transition={{ duration: 0.2 }}
+      style={{
+        background: '#f6f6ef', // Classic HN background
+        border: '2px solid #000000',
+        borderRadius: '0px', // Brutalist sharp edges
+        width: '100%',
+        maxWidth: '560px',
+        height: 'auto',
+        maxHeight: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        boxShadow: '4px 4px 0px #000000',
+        padding: '0',
+        fontFamily: 'var(--font-sans)',
+        position: 'relative'
+      }}
+    >
+      {/* Top Banner */}
+      <div style={{ background: '#ff6600', padding: '12px 16px', borderBottom: '2px solid #000000', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontWeight: 800, color: '#000000', fontSize: '1rem', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ border: '2px solid #000', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', fontSize: '0.8rem' }}>Y</span>
+          HACKER NEWS
+        </div>
+        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#000000' }}>
+          No. {Math.floor(Math.random() * 10000)}
+        </div>
       </div>
 
-      <h2 style={{ fontSize: '2.5rem', fontWeight: 500, color: '#f5f5f5', marginBottom: '24px', lineHeight: 1.15, letterSpacing: '-0.02em', fontFamily: 'Georgia, serif' }}>
-        "{card.title}"
-      </h2>
+      <div style={{ padding: '24px 24px 0 24px', display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto' }}>
+        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#000000', marginBottom: '16px', lineHeight: 1.2, letterSpacing: '-0.02em', fontFamily: 'Georgia, serif' }}>
+          {card.title}
+        </h2>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px', marginBottom: '32px', color: '#ff6600', fontWeight: 600, fontSize: '0.9rem' }}>
-        {md.points && (
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <TrendingUp size={16} /> {md.points} points
-          </span>
-        )}
-        {md.comments && (
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#888' }}>
-            <MessageSquare size={16} /> {md.comments} comments
-          </span>
-        )}
-        {md.hoursAgo !== undefined && (
-          <span style={{ color: '#555' }}>
-            {md.hoursAgo === 0 ? 'Just now' : `${md.hoursAgo} hours ago`}
-          </span>
-        )}
-        {md.source && (
-          <span style={{ color: '#888', fontStyle: 'italic' }}>
-            ({md.source})
-          </span>
-        )}
-      </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px dashed #000000' }}>
+          {md.points && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 800, color: '#ff6600', fontSize: '0.85rem' }}>
+              <TrendingUp size={16} strokeWidth={3} /> {md.points}
+            </span>
+          )}
+          {md.comments && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#000', fontWeight: 600, fontSize: '0.85rem' }}>
+              <MessageSquare size={14} strokeWidth={2.5} /> {md.comments}
+            </span>
+          )}
+          {md.hoursAgo !== undefined && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#666', fontWeight: 600, fontSize: '0.85rem' }}>
+              <Clock size={14} strokeWidth={2.5} /> {md.hoursAgo === 0 ? 'Just now' : `${md.hoursAgo}h`}
+            </span>
+          )}
+          {md.source && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#000', background: 'rgba(0,0,0,0.05)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600, fontSize: '0.75rem' }}>
+              <Link2 size={12} /> {md.source}
+            </span>
+          )}
+        </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', color: '#aaa', fontSize: '1.1rem', lineHeight: 1.7, fontWeight: 300 }}>
-        {card.description}
-      </div>
-
-      <div style={{ marginTop: 'auto', paddingTop: '24px', borderTop: '1px solid #333' }}>
-        <a href={card.url} target="_blank" rel="noreferrer" style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          color: '#f5f5f5', textDecoration: 'none', fontWeight: 500, fontSize: '1.1rem'
+        <div style={{ 
+          color: '#333333', 
+          fontSize: '0.9rem', 
+          lineHeight: 1.5, 
+          fontWeight: 500,
+          marginBottom: '24px',
+          fontFamily: 'Georgia, serif'
         }}>
-          <span>Read Discussion</span>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 102, 0, 0.1)', color: '#ff6600', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ArrowUpRight size={20} />
-          </div>
-        </a>
+          {card.description}
+        </div>
+
+        <motion.a 
+          whileHover={{ background: '#000000', color: '#ffffff' }}
+          whileTap={{ scale: 0.98 }}
+          href={card.url} target="_blank" rel="noreferrer" 
+          style={{
+            marginTop: 'auto', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            background: 'transparent', color: '#000000', border: '2px solid #000000', padding: '10px 16px',
+            fontWeight: 800, textDecoration: 'none', transition: 'all 0.2s', textTransform: 'uppercase',
+            letterSpacing: '0.05em', fontSize: '0.8rem'
+          }}
+        >
+          <span>Read Full Discussion</span>
+          <ArrowUpRight size={16} strokeWidth={3} />
+        </motion.a>
       </div>
-    </div>
+    </motion.div>
   );
 };

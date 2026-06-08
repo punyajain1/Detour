@@ -75,39 +75,39 @@ export const InfiniteFeed: React.FC = () => {
 
   return (
     <>
-    <div style={{ padding: 0, margin: 0, width: '100%', display: 'flex', flexDirection: 'column', paddingBottom: '80px' }}>
-      
-      {cards.length === 0 && !isLoading && !error && (
-        <div className="end-message" style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>No feed items found.</div>
-      )}
+      <div style={{ padding: 0, margin: 0, width: '100%', display: 'flex', flexDirection: 'column', paddingBottom: '80px' }}>
 
-      {error && (
-        <div style={{ padding: '20px', color: '#EF4444', background: 'rgba(239, 68, 68, 0.1)', textAlign: 'center', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {error}
+        {cards.length === 0 && !isLoading && !error && (
+          <div className="end-message" style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>No feed items found.</div>
+        )}
+
+        {error && (
+          <div style={{ padding: '20px', color: '#EF4444', background: 'rgba(239, 68, 68, 0.1)', textAlign: 'center', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {error}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <AnimatePresence>
+            {cards.map((card, index) => (
+              <FeedCardComponent key={card.id} card={card} index={index} />
+            ))}
+          </AnimatePresence>
         </div>
-      )}
 
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <AnimatePresence>
-          {cards.map((card, index) => (
-            <FeedCardComponent key={card.id} card={card} index={index} />
-          ))}
-        </AnimatePresence>
+        {hasMore && (
+          <div ref={ref} className="loader-container" style={{ height: '100vh', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="loader" />
+          </div>
+        )}
+
+        {!hasMore && cards.length > 0 && (
+          <div className="end-message" style={{ height: '100vh', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            You've reached the end of the universe.
+          </div>
+        )}
       </div>
-
-      {hasMore && (
-        <div ref={ref} className="loader-container" style={{ height: '100vh', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="loader" />
-        </div>
-      )}
-
-      {!hasMore && cards.length > 0 && (
-        <div className="end-message" style={{ height: '100vh', scrollSnapAlign: 'start', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          You've reached the end of the universe.
-        </div>
-      )}
-    </div>
-    <BottomNavBar activeFilter={activeFilter} onSelectFilter={handleFilterChange} />
+      <BottomNavBar activeFilter={activeFilter} onSelectFilter={handleFilterChange} />
     </>
   );
 };

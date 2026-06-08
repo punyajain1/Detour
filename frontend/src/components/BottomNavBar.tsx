@@ -16,6 +16,8 @@ const FILTERS = [
   { id: 'stackoverflow', label: 'Stack Overflow' },
   { id: 'space_news', label: 'Space News' },
   { id: 'jwst', label: 'JWST' },
+  { id: 'arxiv', label: 'Research Papers' },
+  { id: 'system_design', label: 'System Design' },
 ];
 
 export const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeFilter, onSelectFilter }) => {
@@ -26,7 +28,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeFilter, onSele
           display: none;
         }
       `}</style>
-      <div 
+      <div
         className="scrollable-pill-nav"
         style={{
           position: 'fixed',

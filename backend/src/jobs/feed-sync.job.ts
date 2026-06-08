@@ -11,7 +11,9 @@ import { SOIntegration } from '../integrations/stackoverflow.integration';
 import { LeetCodeIntegration } from '../integrations/leetcode.integration';
 import { SpaceNewsIntegration } from '../integrations/space-news.integration';
 import { JwstIntegration } from '../integrations/jwst.integration';
-import { FeedCard, APODData, SOQuestionData, LCDailyChallengeData, SpaceNewsData, JWSTData } from '../types/feed.types';
+import { ArxivIntegration } from '../integrations/arxiv.integration';
+import { SystemDesignIntegration } from '../integrations/system-design.integration';
+import { FeedCard, APODData, SOQuestionData, LCDailyChallengeData, SpaceNewsData, JWSTData, ArxivData, SystemDesignData } from '../types/feed.types';
 
 export function startFeedSyncJob(): void {
   cron.schedule(
@@ -38,13 +40,15 @@ export const SOURCE_FETCHERS: Record<string, () => Promise<FeedCard[]>> = {
     GitHubIntegration.getTrendingBatch(50, 'ai'),
   ]).then(r => r.flat()),
   hackernews:    () => HNIntegration.getStoriesBatch(50, 'all'),
-  stackoverflow: () => SOIntegration.getTopThisWeek().then(so => [soToCard(so)]),
+  stackoverflow: () => SOIntegration.getRandomTop(20).then(so => so.map(soToCard)),
   leetcode:      () => LeetCodeIntegration.getDailyChallenge().then(lc => [leetCodeToCard(lc)]),
   space_news:    () => Promise.all([
     SpaceNewsIntegration.getLatestArticles(50),
     SpaceNewsIntegration.getLatestBlogs(50),
   ]).then(([a, b]) => [...a, ...b].map(spaceNewsToCard)),
   jwst:          () => JwstIntegration.getLatestImages(50).then(imgs => imgs.map(jwstToCard)),
+  arxiv:         () => ArxivIntegration.getRandomPapers(20).then(papers => papers.map(arxivToCard)),
+  system_design: () => SystemDesignIntegration.getSystemDesignFeeds(20).then(feeds => feeds.map(systemDesignToCard)),
 };
 
 export interface SyncResult {
@@ -181,6 +185,46 @@ function jwstToCard(jwst: JWSTData): any {
       mission:       jwst.details?.mission ?? 'JWST',
       observationId: jwst.observation_id,
       instruments:   jwst.details?.instruments?.map(i => i.instrument) ?? [],
+    },
+  };
+}
+
+function arxivToCard(arxiv: ArxivData): any {
+  let category = 'science';
+  if (arxiv.category.startsWith('cs.')) category = 'ai';
+  if (arxiv.category === 'math.PR' || arxiv.category === 'stat.ML') category = 'programming';
+
+  return {
+    id: uuid(),
+    type: 'arxiv',
+    category,
+    fetchedAt: new Date().toISOString(),
+    title: arxiv.title,
+    description: arxiv.summary.slice(0, 500) + (arxiv.summary.length > 500 ? '...' : ''),
+    url: arxiv.html_url,
+    metadata: {
+      authors: arxiv.authors,
+      pdfUrl: arxiv.pdf_url,
+      publishedAt: arxiv.published_at,
+      arxivCategory: arxiv.category,
+    },
+  };
+}
+
+function systemDesignToCard(sd: SystemDesignData): any {
+  return {
+    id: sd.id,
+    type: 'system_design',
+    category: 'programming',
+    fetchedAt: new Date().toISOString(),
+    title: sd.title,
+    description: sd.summary,
+    url: sd.url,
+    metadata: {
+      source: sd.sourceType,
+      authorOrCompany: sd.authorOrCompany,
+      publishedAt: sd.published_at,
+      tags: sd.tags || [],
     },
   };
 }

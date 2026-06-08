@@ -21,12 +21,14 @@ Detour currently synthesizes data from the following sources:
 - **NASA NeoWs**: Near Earth Object Web Service (Asteroid tracking).
 - **JWST**: Latest breathtaking images from the James Webb Space Telescope.
 - **Space News**: Latest articles and blogs about space exploration.
+- **ArXiv Papers**: Latest pre-print research papers across Science, AI, and Programming.
 
 ### 💻 Programming & Tech
 - **GitHub Trending**: Hottest repositories across Programming, AI, and Startups.
 - **HackerNews**: Top stories and discussions from the tech world.
 - **StackOverflow**: Top questions of the week.
 - **LeetCode**: The Daily Coding Challenge.
+- **System Design Engine**: Hand-picked architectural deep dives from top engineering blogs (Netflix, Uber, Airbnb, Cloudflare), HackerNews discussions, and ArXiv.
 
 ## 🛠️ Tech Stack
 
@@ -36,6 +38,7 @@ The project is structured as a full-stack monorepo with distinct Frontend and Ba
 - **Framework**: [Next.js](https://nextjs.org/) (App Router)
 - **UI Library**: React 18
 - **Styling & Animations**: Vanilla CSS (`globals.css`) + [Framer Motion](https://www.framer.com/motion/)
+- **Mobile Experience**: Built-in Swipe/Gesture navigation for intuitive phone use.
 - **Icons**: Lucide React
 - **Language**: TypeScript
 
