@@ -13,7 +13,7 @@ export const StackOverflowCard: React.FC<{ card: FeedCard }> = ({ card }) => {
       width: '100%',
       maxWidth: '560px',
       height: '100%',
-      maxHeight: '90vh',
+      maxHeight: '100%',
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',

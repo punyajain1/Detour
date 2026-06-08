@@ -45,6 +45,7 @@ export const FeedCardComponent: React.FC<FeedCardProps> = ({ card }) => {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '16px',
+        paddingBottom: '80px', // Added to prevent overlap with the BottomNavBar
       }}
     >
       {renderSpecificCard()}

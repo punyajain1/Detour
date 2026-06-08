@@ -13,7 +13,7 @@ export const HackerNewsCard: React.FC<{ card: FeedCard }> = ({ card }) => {
       width: '100%',
       maxWidth: '560px',
       height: '100%',
-      maxHeight: '90vh',
+      maxHeight: '100%',
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
@@ -30,7 +30,7 @@ export const HackerNewsCard: React.FC<{ card: FeedCard }> = ({ card }) => {
         "{card.title}"
       </h2>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px', color: '#ff6600', fontWeight: 600, fontSize: '0.9rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px', marginBottom: '32px', color: '#ff6600', fontWeight: 600, fontSize: '0.9rem' }}>
         {md.points && (
           <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <TrendingUp size={16} /> {md.points} points

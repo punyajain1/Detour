@@ -1,7 +1,7 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Synthesise Engine',
+  title: 'Detour',
   description: 'Minimalistic dark theme knowledge feed',
 };
 
