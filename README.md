@@ -4,6 +4,29 @@
 
 This project transforms infinite scrolling from a distraction into a tool for curiosity by bringing together knowledge from space exploration, software engineering, science, and research into a single endlessly discoverable feed.
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="Public/image.png" width="48%" />
+  <img src="Public/image%20copy.png" width="48%" />
+</p>
+<p align="center">
+  <img src="Public/image%20copy%202.png" width="48%" />
+  <img src="Public/image%20copy%203.png" width="48%" />
+</p>
+<p align="center">
+  <img src="Public/image%20copy%204.png" width="48%" />
+  <img src="Public/image%20copy%205.png" width="48%" />
+</p>
+<p align="center">
+  <img src="Public/image%20copy%206.png" width="48%" />
+  <img src="Public/image%20copy%207.png" width="48%" />
+</p>
+<p align="center">
+  <img src="Public/image%20copy%208.png" width="48%" />
+  <img src="Public/image%20copy%209.png" width="48%" />
+</p>
+
 ## ✨ Features That Make It Special
 
 - **The Anti-Doom Scroll**: Unlike traditional feeds optimized for addiction, Detour is optimized for curiosity. You encounter everything from James Webb Space Telescope images to trending AI repositories.
