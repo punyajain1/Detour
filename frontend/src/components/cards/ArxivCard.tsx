@@ -32,7 +32,7 @@ export const ArxivCard: React.FC<{ card: FeedCard }> = ({ card }) => {
       {/* Top Banner */}
       <div style={{ background: '#b31b1b', color: '#ffffff', padding: '12px 16px', borderBottom: '2px solid #000000', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontWeight: 700, fontSize: '0.8rem', letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <BookOpen size={18} strokeWidth={2.5} flexShrink={0} />
+          <BookOpen size={18} strokeWidth={2.5} style={{ flexShrink: 0 }} />
           <span>Thank you to arXiv for use of its open access interoperability.</span>
         </div>
         <div style={{ fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#ffffff', color: '#b31b1b', padding: '4px 8px', border: '1.5px solid #000000' }}>
