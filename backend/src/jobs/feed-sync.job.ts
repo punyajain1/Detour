@@ -14,7 +14,26 @@ import { SpaceNewsIntegration } from '../integrations/space-news.integration';
 import { JwstIntegration } from '../integrations/jwst.integration';
 import { ArxivIntegration } from '../integrations/arxiv.integration';
 import { SystemDesignIntegration } from '../integrations/system-design.integration';
-import { FeedCard, APODData, SOQuestionData, LCDailyChallengeData, SpaceNewsData, JWSTData, ArxivData, SystemDesignData } from '../types/feed.types';
+// New integrations
+import { CratesIoIntegration } from '../integrations/crates-io.integration';
+import { NpmRegistryIntegration } from '../integrations/npm-registry.integration';
+import { PypiIntegration } from '../integrations/pypi.integration';
+import { CodeforcesIntegration } from '../integrations/codeforces.integration';
+import { CveIntegration } from '../integrations/cve.integration';
+import { HuggingFaceIntegration } from '../integrations/huggingface.integration';
+import { PapersWithCodeIntegration } from '../integrations/papers-with-code.integration';
+import { SpaceWeatherIntegration } from '../integrations/space-weather.integration';
+
+import {
+  FeedCard,
+  APODData,
+  SOQuestionData,
+  LCDailyChallengeData,
+  SpaceNewsData,
+  JWSTData,
+  ArxivData,
+  SystemDesignData,
+} from '../types/feed.types';
 
 export function startFeedSyncJob(): void {
   cron.schedule(
@@ -32,30 +51,50 @@ export function startFeedSyncJob(): void {
 }
 
 export const SOURCE_FETCHERS: Record<string, () => Promise<FeedCard[]>> = {
-  nasa_apod:     () => NasaIntegration.getLatestAPODs(10).then(a => a.map(apodToCard)),
-  nasa_mars:     () => NasaMarsIntegration.getLatestPhotos(50),
-  nasa_neows:    () => NasaNeoWsIntegration.getTodaysCloseApproaches(50),
-  github:        () => Promise.all([
+  // ─── Existing sources ───────────────────────────────────
+  nasa_apod: () => NasaIntegration.getLatestAPODs(10).then(a => a.map(apodToCard)),
+  nasa_mars: () => NasaMarsIntegration.getLatestPhotos(50),
+  nasa_neows: () => NasaNeoWsIntegration.getTodaysCloseApproaches(50),
+  github: () => Promise.all([
     GitHubIntegration.getTrendingBatch(50, 'programming'),
     GitHubIntegration.getTrendingBatch(50, 'startups'),
     GitHubIntegration.getTrendingBatch(50, 'ai'),
   ]).then(r => r.flat()),
-  hackernews:    () => HNIntegration.getStoriesBatch(50, 'all'),
+  hackernews: () => HNIntegration.getStoriesBatch(50, 'all'),
   stackoverflow: () => SOIntegration.getRandomTop(20).then(so => so.map(soToCard)),
-  leetcode:      () => LeetCodeIntegration.getDailyChallenge().then(lc => [leetCodeToCard(lc)]),
-  space_news:    () => Promise.all([
+  leetcode: () => LeetCodeIntegration.getDailyChallenge().then(lc => [leetCodeToCard(lc)]),
+  space_news: () => Promise.all([
     SpaceNewsIntegration.getLatestArticles(50),
     SpaceNewsIntegration.getLatestBlogs(50),
   ]).then(([a, b]) => [...a, ...b].map(spaceNewsToCard)),
-  jwst:          () => JwstIntegration.getLatestImages(50).then(imgs => imgs.map(jwstToCard)),
-  arxiv:         () => ArxivIntegration.getRandomPapers(20).then(papers => papers.map(arxivToCard)),
+  jwst: () => JwstIntegration.getLatestImages(50).then(imgs => imgs.map(jwstToCard)),
+  arxiv: () => ArxivIntegration.getRandomPapers(20).then(papers => papers.map(arxivToCard)),
   system_design: () => SystemDesignIntegration.getSystemDesignFeeds(20).then(feeds => feeds.map(systemDesignToCard)),
+
+  // ─── New: HN variants ────────────────────────────────────
+  ask_hn: () => HNIntegration.getAskHNBatch(30),
+  show_hn: () => HNIntegration.getShowHNBatch(30),
+  hn_job: () => HNIntegration.getJobsBatch(20),
+
+  // ─── New: Dev ecosystem ──────────────────────────────────
+  crates_io: () => CratesIoIntegration.getTrendingCrates(25),
+  npm_package: () => NpmRegistryIntegration.getTrendingPackages(25),
+  pypi_release: () => PypiIntegration.getLatestReleases(25),
+  codeforces: () => CodeforcesIntegration.getRandomProblems(20),
+  cve: () => CveIntegration.getHighSeverityCVEs(20),
+
+  // ─── New: AI / ML ─────────────────────────────────────────
+  huggingface: () => HuggingFaceIntegration.getTrendingModels(25),
+  papers_with_code: () => PapersWithCodeIntegration.getLatestPapers(20),
+
+  // ─── New: Space ────────────────────────────────────────────
+  space_weather: () => SpaceWeatherIntegration.getAlerts(10),
 };
 
 export interface SyncResult {
-  inserted:   number;
-  deleted:    number;
-  sources:    string[];
+  inserted: number;
+  deleted: number;
+  sources: string[];
   durationMs: number;
 }
 
@@ -73,22 +112,22 @@ export async function runFeedSync(sources?: string[]): Promise<SyncResult> {
   });
 
   const settled = await Promise.allSettled(fetches);
-  const cards   = settled.flatMap(r => r.status === 'fulfilled' ? r.value : []);
+  const cards = settled.flatMap(r => r.status === 'fulfilled' ? r.value : []);
 
   if (cards.length === 0) {
     return { inserted: 0, deleted: 0, sources: keys, durationMs: Date.now() - start };
   }
 
   const dataToInsert = cards.map(c => ({
-    type:        c.type,
-    category:    c.category,
-    title:       c.title,
+    type: c.type,
+    category: c.category,
+    title: c.title,
     description: (c as any).description || '',
-    url:         (c as any).url || null,
-    imageUrl:    c.imageUrl || null,
-    metadata:    c.metadata ? JSON.parse(JSON.stringify(c.metadata)) : {},
-    fetchedAt:   new Date(c.fetchedAt),
-    sortOrder:   Math.random(),
+    url: (c as any).url || null,
+    imageUrl: c.imageUrl || null,
+    metadata: c.metadata ? JSON.parse(JSON.stringify(c.metadata)) : {},
+    fetchedAt: new Date(c.fetchedAt),
+    sortOrder: Math.random(),
   }));
 
   const { count: inserted } = await prisma.feedCard.createMany({ data: dataToInsert });
@@ -98,7 +137,6 @@ export async function runFeedSync(sources?: string[]): Promise<SyncResult> {
     where: { fetchedAt: { lt: cutoff } },
   });
 
-  // Automatically shuffle the entire database after new cards are inserted
   await runShuffle();
 
   return { inserted, deleted, sources: keys, durationMs: Date.now() - start };
@@ -133,10 +171,10 @@ function leetCodeToCard(lc: LCDailyChallengeData): any {
     description: (lc.content ?? '').replace(/<[^>]*>/g, '').replace(/&[a-z]+;/gi, ' ').trim().slice(0, 400),
     url: `https://leetcode.com/problems/${lc.titleSlug}`,
     metadata: {
-      difficulty:     lc.difficulty,
+      difficulty: lc.difficulty,
       acceptanceRate: lc.acRate,
-      topicTags:      lc.topicTags,
-      titleSlug:      lc.titleSlug,
+      topicTags: lc.topicTags,
+      titleSlug: lc.titleSlug,
     },
   };
 }
@@ -151,10 +189,10 @@ function soToCard(so: SOQuestionData): any {
     description: '',
     url: so.link,
     metadata: {
-      score:       so.score,
+      score: so.score,
       answerCount: so.answer_count,
-      tags:        so.tags,
-      isAnswered:  so.is_answered,
+      tags: so.tags,
+      isAnswered: so.is_answered,
     },
   };
 }
@@ -170,7 +208,7 @@ function spaceNewsToCard(sn: SpaceNewsData): any {
     url: sn.url,
     imageUrl: sn.image_url,
     metadata: {
-      newsSite:    sn.news_site,
+      newsSite: sn.news_site,
       publishedAt: sn.published_at,
     },
   };
@@ -187,9 +225,9 @@ function jwstToCard(jwst: JWSTData): any {
     url: jwst.location,
     imageUrl: jwst.location,
     metadata: {
-      mission:       jwst.details?.mission ?? 'JWST',
+      mission: jwst.details?.mission ?? 'JWST',
       observationId: jwst.observation_id,
-      instruments:   jwst.details?.instruments?.map(i => i.instrument) ?? [],
+      instruments: jwst.details?.instruments?.map(i => i.instrument) ?? [],
     },
   };
 }

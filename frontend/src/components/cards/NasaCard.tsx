@@ -10,12 +10,12 @@ export const NasaCard: React.FC<{ card: FeedCard }> = ({ card }) => {
   if (isAsteroid) {
     const isHaz = md.isPotentiallyHazardous;
     const themeColor = isHaz ? '#ff2a5f' : '#00f0ff';
-    const bgGradient = isHaz 
+    const bgGradient = isHaz
       ? 'radial-gradient(circle at top right, rgba(255, 42, 95, 0.15), transparent 60%), #050508'
       : 'radial-gradient(circle at top right, rgba(0, 240, 255, 0.15), transparent 60%), #050508';
 
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ scale: 1.02, y: -5, boxShadow: `0 10px 40px rgba(${isHaz ? '255, 42, 95' : '0, 240, 255'}, 0.2)` }}
@@ -47,18 +47,18 @@ export const NasaCard: React.FC<{ card: FeedCard }> = ({ card }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: themeColor, textTransform: 'uppercase', letterSpacing: '0.15em', fontSize: '0.8rem', fontWeight: 700 }}>
             <Activity size={16} /> NEO Telemetry
           </div>
-          <motion.div 
-            animate={{ opacity: [1, 0.6, 1] }} 
+          <motion.div
+            animate={{ opacity: [1, 0.6, 1] }}
             transition={{ repeat: Infinity, duration: 2 }}
-            style={{ 
-              background: isHaz ? 'rgba(255, 42, 95, 0.15)' : 'rgba(0, 240, 255, 0.15)', 
-              color: themeColor, 
-              padding: '6px 14px', 
-              borderRadius: '20px', 
-              fontWeight: 800, 
+            style={{
+              background: isHaz ? 'rgba(255, 42, 95, 0.15)' : 'rgba(0, 240, 255, 0.15)',
+              color: themeColor,
+              padding: '6px 14px',
+              borderRadius: '20px',
+              fontWeight: 800,
               fontSize: '0.75rem',
-              display: 'flex', 
-              alignItems: 'center', 
+              display: 'flex',
+              alignItems: 'center',
               gap: '6px',
               border: `1px solid rgba(${isHaz ? '255, 42, 95' : '0, 240, 255'}, 0.4)`,
               boxShadow: `0 0 10px rgba(${isHaz ? '255, 42, 95' : '0, 240, 255'}, 0.2)`
@@ -71,7 +71,7 @@ export const NasaCard: React.FC<{ card: FeedCard }> = ({ card }) => {
         <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff', marginBottom: '8px', lineHeight: 1.2, zIndex: 1, letterSpacing: '-0.02em' }}>
           {card.title}
         </h2>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#888', marginBottom: '12px', fontSize: '0.9rem', zIndex: 1, fontWeight: 500 }}>
           <Calendar size={14} color={themeColor} />
           Closest Approach: <span style={{ color: '#ccc' }}>{md.closestApproachDate}</span>
@@ -108,9 +108,9 @@ export const NasaCard: React.FC<{ card: FeedCard }> = ({ card }) => {
         </div>
 
         {/* Footer Action */}
-        <motion.a 
+        <motion.a
           whileHover={{ gap: '12px', color: '#fff' }}
-          href={card.url} target="_blank" rel="noreferrer" 
+          href={card.url} target="_blank" rel="noreferrer"
           style={{
             marginTop: '24px', display: 'flex', alignItems: 'center', gap: '8px',
             color: themeColor, textDecoration: 'none', fontWeight: 700, textTransform: 'uppercase',
@@ -125,7 +125,7 @@ export const NasaCard: React.FC<{ card: FeedCard }> = ({ card }) => {
 
   // Normal Space Card (Image Focused)
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ y: -5, boxShadow: '0 20px 40px rgba(0,0,0,0.8)' }}
@@ -148,9 +148,9 @@ export const NasaCard: React.FC<{ card: FeedCard }> = ({ card }) => {
       {/* Uncropped Image Container */}
       {card.imageUrl && (
         <div style={{ width: '100%', height: '50%', background: '#000', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0, borderBottom: '1px solid #222' }}>
-          <img 
-            src={card.imageUrl} 
-            alt={card.title} 
+          <img
+            src={card.imageUrl}
+            alt={card.title}
             style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
             loading="lazy"
           />
@@ -159,7 +159,7 @@ export const NasaCard: React.FC<{ card: FeedCard }> = ({ card }) => {
 
       {/* Content Container */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px', overflowY: 'auto' }}>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <span style={{ background: '#222', color: '#ccc', padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             <Orbit size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} /> {card.category}
@@ -185,7 +185,7 @@ export const NasaCard: React.FC<{ card: FeedCard }> = ({ card }) => {
           {card.description || md.caption}
         </div>
 
-        <motion.a 
+        <motion.a
           whileHover={{ color: '#fff', x: 5 }}
           href={card.url} target="_blank" rel="noreferrer" style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -199,3 +199,4 @@ export const NasaCard: React.FC<{ card: FeedCard }> = ({ card }) => {
     </motion.div>
   );
 };
+

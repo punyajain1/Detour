@@ -11,11 +11,22 @@ export type FeedCardType =
   | 'github'
   | 'leetcode'
   | 'hackernews'
+  | 'ask_hn'
+  | 'show_hn'
+  | 'hn_job'
   | 'stackoverflow'
   | 'space_news'
   | 'jwst'
   | 'arxiv'
-  | 'system_design';
+  | 'system_design'
+  | 'crates_io'
+  | 'npm_package'
+  | 'pypi_release'
+  | 'codeforces'
+  | 'cve'
+  | 'huggingface'
+  | 'papers_with_code'
+  | 'space_weather';
 
 /** Base fields every card must have */
 interface FeedCardBase {
@@ -216,6 +227,194 @@ export interface SystemDesignCard extends FeedCardBase {
   };
 }
 
+// ─── HN Ask / Show / Job ─────────────────────
+
+export interface AskHNCard extends FeedCardBase {
+  type: 'ask_hn';
+  category: 'programming' | 'ai' | 'startups' | 'all';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    points: number;
+    comments: number;
+    hoursAgo: number;
+    hnId: string;
+  };
+}
+
+export interface ShowHNCard extends FeedCardBase {
+  type: 'show_hn';
+  category: 'programming' | 'ai' | 'startups' | 'all';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    points: number;
+    comments: number;
+    hoursAgo: number;
+    hnId: string;
+  };
+}
+
+export interface HNJobCard extends FeedCardBase {
+  type: 'hn_job';
+  category: 'startups';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    hoursAgo: number;
+    hnId: string;
+    company?: string;
+  };
+}
+
+
+
+
+
+// ─── Crates.io ────────────────────────────────
+
+export interface CratesIoCard extends FeedCardBase {
+  type: 'crates_io';
+  category: 'programming';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    crateName: string;
+    version: string;
+    downloads: number;
+    recentDownloads: number;
+    repository?: string;
+    keywords: string[];
+  };
+}
+
+// ─── npm Package ──────────────────────────────
+
+export interface NpmPackageCard extends FeedCardBase {
+  type: 'npm_package';
+  category: 'programming';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    packageName: string;
+    version: string;
+    weeklyDownloads: number;
+    author?: string;
+    keywords: string[];
+  };
+}
+
+// ─── PyPI Release ─────────────────────────────
+
+export interface PypiReleaseCard extends FeedCardBase {
+  type: 'pypi_release';
+  category: 'programming';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    packageName: string;
+    version: string;
+    author?: string;
+    publishedAt: string;
+  };
+}
+
+// ─── Codeforces ───────────────────────────────
+
+export interface CodeforcesCard extends FeedCardBase {
+  type: 'codeforces';
+  category: 'programming';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    contestId: number;
+    index: string;
+    rating?: number;
+    tags: string[];
+    solvedCount?: number;
+  };
+}
+
+// ─── CVE ──────────────────────────────────────
+
+export interface CveCard extends FeedCardBase {
+  type: 'cve';
+  category: 'programming';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    cveId: string;
+    cvssScore?: number;
+    severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE';
+    publishedAt: string;
+    affectedProducts: string[];
+  };
+}
+
+// ─── Hugging Face Model ───────────────────────
+
+export interface HuggingFaceCard extends FeedCardBase {
+  type: 'huggingface';
+  category: 'ai';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    modelId: string;
+    author: string;
+    downloads: number;
+    likes: number;
+    tags: string[];
+    pipeline?: string;    // e.g. 'text-generation', 'image-classification'
+    updatedAt: string;
+  };
+}
+
+// ─── Papers With Code ─────────────────────────
+
+export interface PapersWithCodeCard extends FeedCardBase {
+  type: 'papers_with_code';
+  category: 'ai';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    arxivId?: string;
+    githubUrl?: string;
+    stars?: number;
+    publishedAt: string;
+    tasks: string[];
+    authors: string[];
+  };
+}
+
+
+
+// ─── Space Weather ────────────────────────────
+
+export interface SpaceWeatherCard extends FeedCardBase {
+  type: 'space_weather';
+  category: 'space';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    kpIndex?: number;        // Geomagnetic activity 0-9
+    classification?: string; // e.g. 'M1', 'X2' for solar flares
+    scale?: string;          // e.g. 'G1', 'S2', 'R3'
+    issuedAt: string;
+    alertType: 'flare' | 'geomagnetic' | 'radiation' | 'general';
+  };
+}
+
 // ─────────────────────────────────────────────
 // Union & Pagination
 // ─────────────────────────────────────────────
@@ -227,11 +426,22 @@ export type FeedCard =
   | GitHubCard
   | LeetCodeCard
   | HackerNewsCard
+  | AskHNCard
+  | ShowHNCard
+  | HNJobCard
   | StackOverflowCard
   | SpaceNewsCard
   | JwstCard
   | ArxivCard
-  | SystemDesignCard;
+  | SystemDesignCard
+  | CratesIoCard
+  | NpmPackageCard
+  | PypiReleaseCard
+  | CodeforcesCard
+  | CveCard
+  | HuggingFaceCard
+  | PapersWithCodeCard
+  | SpaceWeatherCard;
 
 export interface FeedPage {
   cards: FeedCard[];

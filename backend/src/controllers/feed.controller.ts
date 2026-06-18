@@ -47,6 +47,7 @@ export class FeedController {
     const response: FeedSourcesResponse = {
       categories: ['all', 'space', 'programming', 'startups', 'ai', 'science'],
       sources: [
+        // Original
         'nasa_apod',
         'nasa_mars',
         'nasa_neows',
@@ -58,6 +59,18 @@ export class FeedController {
         'jwst',
         'arxiv',
         'system_design',
+        // New
+        'ask_hn',
+        'show_hn',
+        'hn_job',
+        'crates_io',
+        'npm_package',
+        'pypi_release',
+        'codeforces',
+        'cve',
+        'huggingface',
+        'papers_with_code',
+        'space_weather',
       ],
     };
     res.json(response);
