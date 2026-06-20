@@ -5,10 +5,14 @@ import { FeedCard } from '../types/feed';
 import { GithubCard } from './cards/GithubCard';
 import { HackerNewsCard } from './cards/HackerNewsCard';
 import { LeetCodeCard } from './cards/LeetCodeCard';
-import { NasaCard } from './cards/NasaCard';
 import { StackOverflowCard } from './cards/StackOverflowCard';
 import { ArxivCard } from './cards/ArxivCard';
 import { SystemDesignCard } from './cards/SystemDesignCard';
+import { NasaApodCard } from './cards/NasaApodCard';
+import { NasaMarsCard } from './cards/NasaMarsCard';
+import { NasaNeoWsCard } from './cards/NasaNeoWsCard';
+import { SpaceNewsCard } from './cards/SpaceNewsCard';
+import { JwstCard } from './cards/JwstCard';
 // New card components
 import { DevPackageCard } from './cards/DevPackageCard';
 import { SecurityCard } from './cards/SecurityCard';
@@ -16,6 +20,8 @@ import { AIResearchCard } from './cards/AIResearchCard';
 import { PapersWithCodeCard } from './cards/PapersWithCodeCard';
 import { SpaceWeatherCard } from './cards/SpaceWeatherCard';
 import { CodeforcesCard } from './cards/CodeforcesCard';
+import { NasaExoplanetCard } from './cards/NasaExoplanetCard';
+import { NasaImageLibraryCard } from './cards/NasaImageLibraryCard';
 
 interface FeedCardProps {
   card: FeedCard;
@@ -35,7 +41,11 @@ export const FeedCardComponent: React.FC<FeedCardProps> = ({ card }) => {
     if (card.type === 'stackoverflow') return <StackOverflowCard card={card} />;
     if (card.type === 'arxiv') return <ArxivCard card={card} />;
     if (card.type === 'system_design') return <SystemDesignCard card={card} />;
-    if (card.type.startsWith('nasa') || card.type === 'space_news' || card.type === 'jwst') return <NasaCard card={card} />;
+    if (card.type === 'nasa_apod') return <NasaApodCard card={card as any} />;
+    if (card.type === 'nasa_mars') return <NasaMarsCard card={card as any} />;
+    if (card.type === 'nasa_neows') return <NasaNeoWsCard card={card as any} />;
+    if (card.type === 'space_news') return <SpaceNewsCard card={card as any} />;
+    if (card.type === 'jwst') return <JwstCard card={card as any} />;
 
     // ─── HN variants ────────────────────────────────────────────
     if (card.type === 'hackernews' || card.type === 'ask_hn' || card.type === 'show_hn' || card.type === 'hn_job') {
@@ -61,8 +71,12 @@ export const FeedCardComponent: React.FC<FeedCardProps> = ({ card }) => {
     // ─── Competitive programming ────────────────────────────────
     if (card.type === 'codeforces') return <CodeforcesCard card={card as any} />;
 
-    // ─── Space ──────────────────────────────────────────────────
+    // ─── Space ───────────────────────────────────────
     if (card.type === 'space_weather') return <SpaceWeatherCard card={card as any} />;
+
+    // ─── NASA Exoplanets & Image Library ───────────
+    if (card.type === 'nasa_exoplanet') return <NasaExoplanetCard card={card as any} />;
+    if (card.type === 'nasa_image_library') return <NasaImageLibraryCard card={card as any} />;
 
     return null;
   };

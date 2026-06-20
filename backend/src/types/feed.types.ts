@@ -8,6 +8,8 @@ export type FeedCardType =
   | 'nasa_apod'
   | 'nasa_mars'
   | 'nasa_neows'
+  | 'nasa_exoplanet'
+  | 'nasa_image_library'
   | 'github'
   | 'leetcode'
   | 'hackernews'
@@ -415,6 +417,49 @@ export interface SpaceWeatherCard extends FeedCardBase {
   };
 }
 
+// ─── NASA Exoplanet Archive ───────────────────
+
+export interface NasaExoplanetCard extends FeedCardBase {
+  type: 'nasa_exoplanet';
+  category: 'space';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    planetName: string;
+    hostStar: string;
+    discoveryMethod: string;
+    discoveryYear: number;
+    orbitalPeriodDays?: number;
+    radiusEarthRadii?: number;
+    massEarthMasses?: number;
+    equilibriumTempK?: number;
+    distanceParsecs?: number;
+    stellarSpectralType?: string;
+    facility?: string;
+  };
+}
+
+// ─── NASA Image & Video Library ───────────────
+
+export interface NasaImageLibraryCard extends FeedCardBase {
+  type: 'nasa_image_library';
+  category: 'space';
+  title: string;
+  description: string;
+  imageUrl: string;
+  url: string;
+  metadata: {
+    nasaId: string;
+    dateCreated: string;
+    center?: string;
+    keywords: string[];
+    photographer?: string;
+    location?: string;
+    searchQuery: string;
+  };
+}
+
 // ─────────────────────────────────────────────
 // Union & Pagination
 // ─────────────────────────────────────────────
@@ -423,6 +468,8 @@ export type FeedCard =
   | NasaApodCard
   | NasaMarsCard
   | NasaNeoWsCard
+  | NasaExoplanetCard
+  | NasaImageLibraryCard
   | GitHubCard
   | LeetCodeCard
   | HackerNewsCard

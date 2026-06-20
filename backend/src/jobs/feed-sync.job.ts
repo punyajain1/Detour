@@ -23,6 +23,8 @@ import { CveIntegration } from '../integrations/cve.integration';
 import { HuggingFaceIntegration } from '../integrations/huggingface.integration';
 import { PapersWithCodeIntegration } from '../integrations/papers-with-code.integration';
 import { SpaceWeatherIntegration } from '../integrations/space-weather.integration';
+import { NasaExoplanetsIntegration } from '../integrations/nasa-exoplanets.integration';
+import { NasaImageLibraryIntegration } from '../integrations/nasa-image-library.integration';
 
 import {
   FeedCard,
@@ -87,8 +89,12 @@ export const SOURCE_FETCHERS: Record<string, () => Promise<FeedCard[]>> = {
   huggingface: () => HuggingFaceIntegration.getTrendingModels(25),
   papers_with_code: () => PapersWithCodeIntegration.getLatestPapers(20),
 
-  // ─── New: Space ────────────────────────────────────────────
+  // ─── New: Space ──────────────────────────────────
   space_weather: () => SpaceWeatherIntegration.getAlerts(10),
+
+  // ─── NASA Exoplanets & Image Library ───────────
+  nasa_exoplanet: () => NasaExoplanetsIntegration.getRecentExoplanets(20),
+  nasa_image_library: () => NasaImageLibraryIntegration.getSpaceImages(20),
 };
 
 export interface SyncResult {

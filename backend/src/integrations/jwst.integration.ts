@@ -5,21 +5,14 @@ import { JWSTData } from '../types/feed.types';
 const NASA_IMAGES_BASE = 'https://images-api.nasa.gov';
 
 const SPACE_QUERIES = [
-  'james webb space telescope galaxy',
-  'james webb space telescope nebula',
-  'james webb space telescope deep field',
-  'james webb space telescope exoplanet',
-  'james webb space telescope star cluster',
-  'hubble space telescope galaxy',
-  'hubble space telescope nebula',
-  'hubble space telescope deep field',
-  'hubble space telescope pillars of creation',
-  'hubble space telescope star cluster',
-  'nasa observatory galaxy infrared',
-  'nasa nebula stellar nursery cosmos',
-  'nasa black hole galaxy cluster',
-  'nasa exoplanet atmosphere observation',
-  'nasa deep space supernova remnant',
+  'jwst',
+  'james webb',
+  'webb telescope',
+  'hubble',
+  'hubble telescope',
+  'chandra observatory',
+  'spitzer space telescope',
+  'james webb space telescope'
 ];
 
 const BLOCKLIST = [
@@ -72,60 +65,101 @@ export class JwstIntegration {
   static async getLatestImages(limit: number = 10): Promise<JWSTData[]> {
     const results: JWSTData[] = [];
     const seenIds = new Set<string>();
-    const perQuery = Math.max(3, Math.ceil(limit / 4));
 
-    for (const query of SPACE_QUERIES) {
-      if (results.length >= limit) break;
-
+    // 1. Fetch from JWST API
+    if (process.env.JWST_API_KEY) {
       try {
-        const { data } = await axios.get<NasaImagesResponse>(
-          `${NASA_IMAGES_BASE}/search`,
-          {
-            params: { q: query, media_type: 'image', year_start: '1990', page_size: 100 },
-            timeout: 12000,
-          }
-        );
+        const { data } = await axios.get('https://api.jwstapi.com/v1/all/type/jpg', {
+          headers: { 'X-API-KEY': process.env.JWST_API_KEY },
+          params: { page: 1, perPage: Math.ceil(limit / 2) },
+          timeout: 10000,
+        });
 
-        const items = data?.collection?.items ?? [];
-        let addedFromQuery = 0;
-
+        const items = data?.body ?? [];
         for (const item of items) {
-          if (results.length >= limit || addedFromQuery >= perQuery) break;
-
-          const meta = item.data?.[0];
-          if (!meta) continue;
-
-          const title = meta.title ?? '';
-          const desc = meta.description ?? '';
-          if (!isSpaceImage(title, desc)) continue;
-
-          const previewLink = item.links?.find((l) => l.rel === 'preview' && l.render === 'image');
-          if (!previewLink?.href || seenIds.has(meta.nasa_id)) continue;
-          seenIds.add(meta.nasa_id);
+          if (!item.location) continue;
 
           results.push({
             id: uuid(),
-            observation_id: meta.nasa_id,
-            program: 0,
+            observation_id: item.id || uuid(),
+            program: item.program || 0,
             details: {
-              mission: query.toLowerCase().includes('hubble')
-                ? 'Hubble Space Telescope'
-                : query.toLowerCase().includes('james webb') || query.toLowerCase().includes('webb')
-                  ? 'JWST'
-                  : 'NASA Observatory',
-              instruments: [],
-              suffix: '',
-              description: desc || title,
+              mission: item.details?.mission || 'JWST',
+              instruments: Array.isArray(item.details?.instruments)
+                ? item.details.instruments.map((i: any) => i.instrument || i)
+                : [],
+              suffix: item.details?.suffix || '',
+              description: item.details?.description || 'JWST Observation',
             },
-            file_type: 'jpg',
-            thumbnail: previewLink.href,
-            location: previewLink.href,
+            file_type: item.file_type || 'jpg',
+            thumbnail: item.thumbnail || item.location,
+            location: item.location,
           });
-
-          addedFromQuery++;
+          seenIds.add(item.id || item.location);
         }
-      } catch (err) {
-        console.warn(`[SpaceTelescope] "${query}" failed:`, (err as Error).message);
+      } catch (err: any) {
+        console.warn('[SpaceTelescope] JWST API failed:', err.message);
+      }
+    }
+
+    // 2. Fetch from NASA API for the remainder
+    const remainingLimit = limit - results.length;
+    if (remainingLimit > 0) {
+      const perQuery = Math.max(3, Math.ceil(remainingLimit / 4));
+
+      for (const query of SPACE_QUERIES) {
+        if (results.length >= limit) break;
+
+        try {
+          const { data } = await axios.get<NasaImagesResponse>(
+            `${NASA_IMAGES_BASE}/search`,
+            {
+              params: { q: query, media_type: 'image', year_start: '1990', page_size: 100 },
+              timeout: 12000,
+            }
+          );
+
+          const items = data?.collection?.items ?? [];
+          let addedFromQuery = 0;
+
+          for (const item of items) {
+            if (results.length >= limit || addedFromQuery >= perQuery) break;
+
+            const meta = item.data?.[0];
+            if (!meta) continue;
+
+            const title = meta.title ?? '';
+            const desc = meta.description ?? '';
+            if (!isSpaceImage(title, desc)) continue;
+
+            const previewLink = item.links?.find((l) => l.rel === 'preview' && l.render === 'image');
+            if (!previewLink?.href || seenIds.has(meta.nasa_id)) continue;
+            seenIds.add(meta.nasa_id);
+
+            results.push({
+              id: uuid(),
+              observation_id: meta.nasa_id,
+              program: 0,
+              details: {
+                mission: query.toLowerCase().includes('hubble')
+                  ? 'Hubble Space Telescope'
+                  : query.toLowerCase().includes('james webb') || query.toLowerCase().includes('webb') || query.toLowerCase().includes('jwst')
+                    ? 'JWST'
+                    : 'NASA Observatory',
+                instruments: [],
+                suffix: '',
+                description: desc || title,
+              },
+              file_type: 'jpg',
+              thumbnail: previewLink.href,
+              location: previewLink.href,
+            });
+
+            addedFromQuery++;
+          }
+        } catch (err) {
+          console.warn(`[SpaceTelescope] "${query}" failed:`, (err as Error).message);
+        }
       }
     }
 

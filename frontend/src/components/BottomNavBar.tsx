@@ -5,7 +5,7 @@ import {
   Newspaper, HelpCircle, Rocket, Aperture, BookOpen, Network,
   MessageSquare, Presentation, Briefcase, FileCode, PackageOpen,
   Package, Box, Trophy, ShieldAlert, Smile, FileText, GraduationCap,
-  Satellite, Sun, LayoutGrid,
+  Satellite, Sun, LayoutGrid, SatelliteDish, Image,
 } from 'lucide-react';
 
 interface BottomNavBarProps {
@@ -29,6 +29,8 @@ const FILTER_GROUPS = [
       { id: 'jwst', label: 'JWST', description: 'Webb telescope images', icon: Aperture },
       { id: 'space_weather', label: 'Space Weather', description: 'Solar flares & storms', icon: Sun },
       { id: 'space_news', label: 'Space News', description: 'Aerospace updates', icon: Rocket },
+      { id: 'nasa_exoplanet', label: 'Exoplanets', description: 'Confirmed exoplanet discoveries', icon: SatelliteDish },
+      { id: 'nasa_image_library', label: 'NASA Images', description: 'NASA image & video library', icon: Image },
     ],
   },
   {

@@ -1,12 +1,17 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { fetchFeed } from '../lib/api';
 import { FeedCard, FeedPage } from '../types/feed';
 import { FeedCardComponent } from './FeedCardComponent';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BottomNavBar } from './BottomNavBar';
+
+// ─── Secret console helper ──────────────────────────────────────────────────
+// Open DevTools and run: detour.sync()
+// Optional: detour.sync(['nasa_exoplanet', 'nasa_image_library'])
+declare global { interface Window { detour: { sync: (sources?: string[]) => Promise<void> } } }
 
 export const InfiniteFeed: React.FC = () => {
   const [cards, setCards] = useState<FeedCard[]>([]);
@@ -16,6 +21,7 @@ export const InfiniteFeed: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [activeFilter, setActiveFilter] = useState<string>('all');
+  const reloadRef = useRef<() => void>(() => {});
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -65,6 +71,43 @@ export const InfiniteFeed: React.FC = () => {
     setActiveFilter(filter);
     setIsInitialLoad(true);
   }, [activeFilter]);
+
+  // Keep reloadRef current so the console helper always has a fresh reload fn
+  useEffect(() => {
+    reloadRef.current = () => {
+      setCards([]);
+      setCursor(null);
+      setHasMore(true);
+      setIsLoading(false);
+      setError(null);
+      setIsInitialLoad(true);
+    };
+  });
+
+  // Register secret console command: detour.sync(sources?)
+  useEffect(() => {
+    const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+    window.detour = {
+      sync: async (sources?: string[]) => {
+        const label = sources?.length ? sources.join(', ') : 'all sources';
+        console.log(`%c[Detour] Syncing ${label}…`, 'color:#6366f1;font-weight:700');
+        try {
+          const res = await fetch(`${API}/feed/force-fetch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sources?.length ? { sources } : {}),
+          });
+          const json = await res.json();
+          console.log('%c[Detour] Sync complete', 'color:#22c55e;font-weight:700', json);
+          reloadRef.current();
+        } catch (e) {
+          console.error('[Detour] Sync failed', e);
+        }
+      },
+    };
+    return () => { delete (window as any).detour; };
+  }, []);
+
 
   // Trigger load on scroll
   useEffect(() => {
