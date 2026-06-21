@@ -24,7 +24,8 @@ export type FeedCardType =
   | 'cve'
   | 'huggingface'
   | 'papers_with_code'
-  | 'space_weather';
+  | 'space_weather'
+  | 'lobsters';
 
 export interface FeedCardBase {
   id: string;
@@ -408,6 +409,26 @@ export interface NasaImageLibraryCard extends FeedCardBase {
   };
 }
 
+// ─── Lobste.rs ─────────────────────────────────
+
+export interface LobstersCard extends FeedCardBase {
+  type: 'lobsters';
+  category: 'programming' | 'ai' | 'science' | 'all';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    shortId: string;
+    score: number;
+    comments: number;
+    hoursAgo: number;
+    tags: string[];
+    submitter: string;
+    commentsUrl: string;
+    domain: string;
+  };
+}
+
 // ─────────────────────────────────────────────
 // Discriminated Union
 // ─────────────────────────────────────────────
@@ -435,7 +456,8 @@ export type FeedCard =
   | PapersWithCodeCard
   | SpaceWeatherCard
   | NasaExoplanetCard
-  | NasaImageLibraryCard;
+  | NasaImageLibraryCard
+  | LobstersCard;
 
 export interface FeedPage {
   cards: FeedCard[];

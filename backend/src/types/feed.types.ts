@@ -28,7 +28,8 @@ export type FeedCardType =
   | 'cve'
   | 'huggingface'
   | 'papers_with_code'
-  | 'space_weather';
+  | 'space_weather'
+  | 'lobsters';
 
 /** Base fields every card must have */
 interface FeedCardBase {
@@ -400,6 +401,26 @@ export interface PapersWithCodeCard extends FeedCardBase {
 
 
 
+// ─── Lobste.rs ───────────────────────────────
+
+export interface LobstersCard extends FeedCardBase {
+  type: 'lobsters';
+  category: 'programming' | 'ai' | 'science' | 'all';
+  title: string;
+  description: string;   // plain-text body (empty for pure link posts)
+  url: string;           // external link, or comments page for text posts
+  metadata: {
+    shortId: string;     // Lobste.rs short ID (e.g. "abc123")
+    score: number;
+    comments: number;
+    hoursAgo: number;
+    tags: string[];      // Lobste.rs topic tags (e.g. ["rust", "webdev"])
+    submitter: string;   // username of the submitter
+    commentsUrl: string; // always the lobste.rs discussion thread
+    domain: string;      // extracted domain of the linked article
+  };
+}
+
 // ─── Space Weather ────────────────────────────
 
 export interface SpaceWeatherCard extends FeedCardBase {
@@ -488,7 +509,8 @@ export type FeedCard =
   | CveCard
   | HuggingFaceCard
   | PapersWithCodeCard
-  | SpaceWeatherCard;
+  | SpaceWeatherCard
+  | LobstersCard;
 
 export interface FeedPage {
   cards: FeedCard[];

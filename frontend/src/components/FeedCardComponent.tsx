@@ -22,6 +22,7 @@ import { SpaceWeatherCard } from './cards/SpaceWeatherCard';
 import { CodeforcesCard } from './cards/CodeforcesCard';
 import { NasaExoplanetCard } from './cards/NasaExoplanetCard';
 import { NasaImageLibraryCard } from './cards/NasaImageLibraryCard';
+import { LobstersCard } from './cards/LobstersCard';
 
 interface FeedCardProps {
   card: FeedCard;
@@ -77,6 +78,9 @@ export const FeedCardComponent: React.FC<FeedCardProps> = ({ card }) => {
     // ─── NASA Exoplanets & Image Library ───────────
     if (card.type === 'nasa_exoplanet') return <NasaExoplanetCard card={card as any} />;
     if (card.type === 'nasa_image_library') return <NasaImageLibraryCard card={card as any} />;
+
+    // ─── Lobste.rs ────────────────────────────────────
+    if (card.type === 'lobsters') return <LobstersCard card={card as any} />;
 
     return null;
   };

@@ -40,6 +40,7 @@ const FILTER_GROUPS = [
       { id: 'ask_hn', label: 'Ask HN', description: 'Community Q&A', icon: MessageSquare },
       { id: 'show_hn', label: 'Show HN', description: 'Creator projects & startups', icon: Presentation },
       { id: 'hn_job', label: 'HN Jobs', description: 'YC startup job postings', icon: Briefcase },
+      { id: 'lobsters', label: 'Lobste.rs', description: 'Computing community stories', icon: FileCode },
       { id: 'system_design', label: 'System Design', description: 'Architecture case studies', icon: Network },
     ],
   },

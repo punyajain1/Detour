@@ -25,6 +25,7 @@ import { PapersWithCodeIntegration } from '../integrations/papers-with-code.inte
 import { SpaceWeatherIntegration } from '../integrations/space-weather.integration';
 import { NasaExoplanetsIntegration } from '../integrations/nasa-exoplanets.integration';
 import { NasaImageLibraryIntegration } from '../integrations/nasa-image-library.integration';
+import { LobstersIntegration } from '../integrations/lobsters.integration';
 
 import {
   FeedCard,
@@ -95,6 +96,9 @@ export const SOURCE_FETCHERS: Record<string, () => Promise<FeedCard[]>> = {
   // ─── NASA Exoplanets & Image Library ───────────
   nasa_exoplanet: () => NasaExoplanetsIntegration.getRecentExoplanets(20),
   nasa_image_library: () => NasaImageLibraryIntegration.getSpaceImages(20),
+
+  // ─── Lobste.rs ────────────────────────────────────
+  lobsters: () => LobstersIntegration.getStoriesBatch(40),
 };
 
 export interface SyncResult {
