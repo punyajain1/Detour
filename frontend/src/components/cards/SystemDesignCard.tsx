@@ -102,8 +102,8 @@ export const SystemDesignCard: React.FC<{ card: FeedCard }> = ({ card }) => {
       <div style={{ flexGrow: 1 }} />
 
       {/* Footer Info */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px' }}>
           {md.publishedAt && (
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#757575', fontSize: '0.8rem', fontWeight: 400 }}>
               <Calendar size={14} /> 
@@ -120,8 +120,8 @@ export const SystemDesignCard: React.FC<{ card: FeedCard }> = ({ card }) => {
         
         {/* Tags */}
         {md.tags && md.tags.length > 0 && (
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {md.tags.slice(0, 2).map((tag: string, i: number) => (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {md.tags.map((tag: string, i: number) => (
               <span key={i} style={{ 
                 background: '#f2f2f2', color: '#757575', fontSize: '0.75rem', 
                 padding: '4px 8px', borderRadius: '100px', fontWeight: 500, textTransform: 'lowercase'

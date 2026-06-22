@@ -184,7 +184,11 @@ const SCRAPE_SITES = [
 // XML parser (shared instance)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const XML_PARSER = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
+const XML_PARSER = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+  processEntities: false,
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main integration class
@@ -342,15 +346,15 @@ export class SystemDesignIntegration {
         params: {
           query,
           tags: 'story',
-          numericFilters: `points>30,created_at_i>${createdAfter}`,
-          hitsPerPage: limit,
+          numericFilters: `created_at_i>${createdAfter}`,
+          hitsPerPage: limit * 2,
         },
         timeout: 10000,
         headers: { 'User-Agent': 'Detour-FeedBot/1.0' },
       });
 
       return (data.hits ?? [])
-        .filter((hit: any) => hit.title && isSystemDesignRelated(hit.title, ''))
+        .filter((hit: any) => hit.title && (hit.points ?? 0) > 30 && isSystemDesignRelated(hit.title, ''))
         .map((hit: any): SystemDesignData => ({
           id: uuid(),
           title: hit.title,
