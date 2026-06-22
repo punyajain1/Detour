@@ -208,7 +208,13 @@ export interface SystemDesignCard extends FeedCardBase {
   description: string;
   url: string;
   metadata: {
-    source: 'engineering_blog' | 'hackernews' | 'arxiv_paper';
+    source: 
+      | 'engineering_blog' 
+      | 'hackernews' 
+      | 'arxiv_paper'
+      | 'architecture_blog'
+      | 'database_blog'
+      | 'infrastructure_blog';
     authorOrCompany: string;
     publishedAt?: string;
     readingTimeMinutes?: number;

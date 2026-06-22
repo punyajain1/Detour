@@ -1,6 +1,6 @@
 import React from 'react';
 import { FeedCard } from '../../types/feed';
-import { BookOpen, Calendar, Clock, Terminal, Newspaper, LayoutTemplate } from 'lucide-react';
+import { BookOpen, Calendar, Clock, Terminal, Newspaper, LayoutTemplate, Database, Server } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const SystemDesignCard: React.FC<{ card: FeedCard }> = ({ card }) => {
@@ -15,6 +15,12 @@ export const SystemDesignCard: React.FC<{ card: FeedCard }> = ({ card }) => {
         return { icon: <Newspaper size={14} />, color: '#ff6600', label: 'Hacker News' }; // HN orange
       case 'arxiv_paper':
         return { icon: <BookOpen size={14} />, color: '#b31b1b', label: 'Research Paper' }; // Cornell red
+      case 'architecture_blog':
+        return { icon: <LayoutTemplate size={14} />, color: '#4a90e2', label: 'Architecture Blog' };
+      case 'database_blog':
+        return { icon: <Database size={14} />, color: '#00684a', label: 'Database Blog' };
+      case 'infrastructure_blog':
+        return { icon: <Server size={14} />, color: '#8e44ad', label: 'Infrastructure Blog' };
       default:
         return { icon: <LayoutTemplate size={14} />, color: '#292929', label: 'System Design' };
     }

@@ -213,7 +213,7 @@ export interface ArxivCard extends FeedCardBase {
   };
 }
 
-// ─── System Design ─────────────────────────────
+// ─── System Design ─────────────────────────────────────────────
 
 export interface SystemDesignCard extends FeedCardBase {
   type: 'system_design';
@@ -222,7 +222,7 @@ export interface SystemDesignCard extends FeedCardBase {
   description: string;
   url: string;
   metadata: {
-    source: 'engineering_blog' | 'hackernews' | 'arxiv_paper';
+    source: SystemDesignData['sourceType'];
     authorOrCompany: string;
     publishedAt?: string;
     readingTimeMinutes?: number;
@@ -632,7 +632,13 @@ export interface SystemDesignData {
   title: string;
   summary: string;
   url: string;
-  sourceType: 'engineering_blog' | 'hackernews' | 'arxiv_paper';
+  sourceType:
+    | 'engineering_blog'
+    | 'hackernews'
+    | 'arxiv_paper'
+    | 'architecture_blog'
+    | 'database_blog'
+    | 'infrastructure_blog';
   authorOrCompany: string;
   published_at?: string;
   tags?: string[];
