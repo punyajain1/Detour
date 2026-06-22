@@ -142,10 +142,69 @@ export async function runFeedSync(sources?: string[]): Promise<SyncResult> {
 
   const { count: inserted } = await prisma.feedCard.createMany({ data: dataToInsert });
 
-  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const { count: deleted } = await prisma.feedCard.deleteMany({
-    where: { fetchedAt: { lt: cutoff } },
+  // ── Per-type TTLs (full life before deletion) ─────────────────────────────
+  // Values are derived from the "fades to half in" durations — each source's
+  // content is kept alive for its full relevant lifespan before being pruned.
+  const TYPE_TTL_HOURS: Record<string, number> = {
+    // 🌌 Space & Science
+    nasa_apod: 30,
+    nasa_mars: 36,
+    nasa_neows: 18,
+    nasa_exoplanet: 2 * 24,   // ~2 days
+    nasa_image_library: 2 * 24,   // ~2 days
+    jwst: 24, // ~2.5 days
+    space_news: 24,
+    space_weather: 12,
+    arxiv: 7 * 24,   // ~7 days
+
+    // 💻 Programming & Tech
+    github: 24,
+    hackernews: 16,
+    ask_hn: 24,
+    show_hn: 24,
+    hn_job: 7 * 24,
+    stackoverflow: 36,
+    leetcode: 24,
+    system_design: 10 * 24,   // ~10 days
+    papers_with_code: 7 * 24,   // ~7 days
+    huggingface: 48,
+    codeforces: 24,
+    lobsters: 24,
+
+    // 📦 Open-Source Ecosystem
+    npm_package: 30,
+    pypi_release: 30,
+    crates_io: 30,
+
+    // 🔐 Security
+    cve: 5 * 24,   // ~5 days
+  };
+
+  // Fallback TTL for any type not explicitly listed
+  const DEFAULT_TTL_HOURS = 29;
+
+  // Group all known types and issue a targeted deleteMany per TTL bucket
+  const allTypes = Object.keys(TYPE_TTL_HOURS);
+  let deleted = 0;
+
+  for (const type of allTypes) {
+    const ttlHours = TYPE_TTL_HOURS[type];
+    const cutoff = new Date(Date.now() - ttlHours * 60 * 60 * 1000);
+    const { count } = await prisma.feedCard.deleteMany({
+      where: { type, fetchedAt: { lt: cutoff } },
+    });
+    deleted += count;
+  }
+
+  // Catch-all: prune any card whose type isn't in the map after the default TTL
+  const defaultCutoff = new Date(Date.now() - DEFAULT_TTL_HOURS * 60 * 60 * 1000);
+  const { count: catchAllDeleted } = await prisma.feedCard.deleteMany({
+    where: {
+      type: { notIn: allTypes },
+      fetchedAt: { lt: defaultCutoff },
+    },
   });
+  deleted += catchAllDeleted;
 
   await runShuffle();
 
