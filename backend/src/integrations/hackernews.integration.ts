@@ -92,6 +92,10 @@ export class HNIntegration {
 
   /** Fetches `count` HN stories as feed cards, optionally category-filtered */
   static async getStoriesBatch(count: number, category: HNFeedCategory = 'all'): Promise<HackerNewsCard[]> {
+    if (category === 'all') {
+      return this.fetchTopStoriesFirebase(count);
+    }
+
     const oneDayAgo = Math.floor(Date.now() / 1000) - 86400;
     const keywords = CATEGORY_KEYWORDS[category];
 
@@ -131,7 +135,7 @@ export class HNIntegration {
         return {
           id: uuid(),
           type: 'hackernews' as const,
-          category: (category === 'all' ? 'all' : category) as HackerNewsCard['category'],
+          category: category as HackerNewsCard['category'],
           fetchedAt: new Date().toISOString(),
           title: story.title,
           description: '',
@@ -196,6 +200,73 @@ export class HNIntegration {
       });
     } catch (err) {
       console.warn('[HN] getJobsBatch failed:', err instanceof Error ? err.message : err);
+      return [];
+    }
+  }
+
+  /**
+   * Fetches normal HN stories (topstories) using the official Firebase API.
+   */
+  private static async fetchTopStoriesFirebase(count: number): Promise<HackerNewsCard[]> {
+    const FIREBASE = 'https://hacker-news.firebaseio.com/v0';
+    try {
+      // Step 1: get ranked list of IDs from topstories
+      const { data: ids } = await axios.get<number[]>(
+        `${FIREBASE}/topstories.json`,
+        { timeout: 10_000 }
+      );
+
+      if (!ids || ids.length === 0) {
+        console.warn(`[HN] topstories.json returned empty list`);
+        return [];
+      }
+
+      // Step 2: hydrate items
+      const candidateIds = ids.slice(0, Math.min(count * 3, 60));
+      const itemResults = await Promise.allSettled(
+        candidateIds.map((id) =>
+          axios.get<HNFirebaseItem>(`${FIREBASE}/item/${id}.json`, { timeout: 8_000 })
+        )
+      );
+
+      const now = Date.now();
+      const cards: HackerNewsCard[] = [];
+
+      for (const result of itemResults) {
+        if (result.status === 'rejected') continue;
+        const item = result.value.data;
+
+        // Skip deleted / dead / missing items
+        if (!item || item.deleted || item.dead || !item.title) continue;
+
+        const hoursAgo = Math.round((now - item.time * 1000) / 3_600_000);
+        const hnUrl = `https://news.ycombinator.com/item?id=${item.id}`;
+        const externalUrl = item.url ?? hnUrl;
+        const source = item.url ? this.extractDomain(item.url) : 'news.ycombinator.com';
+
+        cards.push({
+          id: uuid(),
+          type: 'hackernews' as const,
+          category: 'programming', // Normal HN stories fallback
+          fetchedAt: new Date().toISOString(),
+          title: item.title,
+          description: '',
+          url: externalUrl,
+          metadata: {
+            points: item.score ?? 0,
+            comments: item.descendants ?? 0,
+            hoursAgo,
+            hnId: String(item.id),
+            source,
+          },
+        });
+
+        if (cards.length >= count) break;
+      }
+
+      return cards;
+    } catch (err) {
+      console.warn(`[HN] fetchTopStoriesFirebase failed:`, err instanceof Error ? err.message : err);
       return [];
     }
   }

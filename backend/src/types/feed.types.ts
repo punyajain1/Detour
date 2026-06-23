@@ -134,7 +134,7 @@ export interface LeetCodeCard extends FeedCardBase {
 
 export interface HackerNewsCard extends FeedCardBase {
   type: 'hackernews';
-  category: 'startups' | 'ai' | 'programming' | 'all';
+  category: 'startups' | 'ai' | 'programming';
   title: string;
   description: string;   // empty string (HN has no body text)
   url: string;

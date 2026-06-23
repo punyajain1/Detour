@@ -63,7 +63,11 @@ export const SOURCE_FETCHERS: Record<string, () => Promise<FeedCard[]>> = {
     GitHubIntegration.getTrendingBatch(50, 'startups'),
     GitHubIntegration.getTrendingBatch(50, 'ai'),
   ]).then(r => r.flat()),
-  hackernews: () => HNIntegration.getStoriesBatch(50, 'all'),
+  hackernews: () => Promise.all([
+    HNIntegration.getStoriesBatch(20, 'ai'),
+    HNIntegration.getStoriesBatch(20, 'startups'),
+    HNIntegration.getStoriesBatch(20, 'all'),
+  ]).then(r => r.flat()),
   stackoverflow: () => SOIntegration.getRandomTop(20).then(so => so.map(soToCard)),
   leetcode: () => LeetCodeIntegration.getDailyChallenge().then(lc => [leetCodeToCard(lc)]),
   space_news: () => Promise.all([
