@@ -75,7 +75,7 @@ export const SOURCE_FETCHERS: Record<string, () => Promise<FeedCard[]>> = {
     SpaceNewsIntegration.getLatestBlogs(50),
   ]).then(([a, b]) => [...a, ...b].map(spaceNewsToCard)),
   jwst: () => JwstIntegration.getLatestImages(50).then(imgs => imgs.map(jwstToCard)),
-  arxiv: () => ArxivIntegration.getRandomPapers(20).then(papers => papers.map(arxivToCard)),
+  arxiv: () => ArxivIntegration.getRandomPapers(5).then(papers => papers.map(arxivToCard)),
   system_design: () => SystemDesignIntegration.getSystemDesignFeeds(50).then(feeds => feeds.map(systemDesignToCard)),
 
   // ─── New: HN variants ────────────────────────────────────
