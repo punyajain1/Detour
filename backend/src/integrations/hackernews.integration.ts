@@ -21,6 +21,9 @@ interface HNSearchResponse {
     author?: string;
     story_text?: string; // body text present for Ask HN in Algolia
   }>;
+  /** Total pages available — present in every Algolia response */
+  nbPages: number;
+  nbHits: number;
 }
 
 /** Shape returned by the official HN Firebase REST API */
@@ -45,21 +48,24 @@ export class HNIntegration {
   static async getMostDebated(): Promise<HNStoryData> {
     const oneDayAgo = Math.floor(Date.now() / 1000) - 86400;
 
+    // num_comments is no longer a filterable numeric attribute in Algolia HN API;
+    // fetch broadly by date+points and apply the comment threshold in JS.
     const { data } = await axios.get<HNSearchResponse>(`${this.BASE}/search`, {
       params: {
         tags: 'story',
-        numericFilters: `num_comments>100,created_at_i>${oneDayAgo}`,
-        hitsPerPage: 20,
+        numericFilters: `points>1,created_at_i>${oneDayAgo}`,
+        hitsPerPage: 50,
       },
       timeout: 10000,
     });
 
-    if (!data.hits.length) {
+    const debated = data.hits.filter((h) => h.num_comments > 100);
+    if (!debated.length) {
       return this.getMostDebatedFallback();
     }
 
     const now = Date.now();
-    const withVelocity = data.hits.map((h) => {
+    const withVelocity = debated.map((h) => {
       const hoursAgo = Math.max(1, (now - new Date(h.created_at).getTime()) / 3_600_000);
       return { ...h, hoursAgo: Math.round(hoursAgo), velocity: h.num_comments / hoursAgo };
     });
@@ -70,18 +76,21 @@ export class HNIntegration {
   private static async getMostDebatedFallback(): Promise<HNStoryData> {
     const twoDaysAgo = Math.floor(Date.now() / 1000) - 172_800;
 
+    // num_comments is no longer a filterable numeric attribute in Algolia HN API;
+    // fetch broadly and filter by comment count in JS.
     const { data } = await axios.get<HNSearchResponse>(`${this.BASE}/search`, {
       params: {
         tags: 'story',
-        numericFilters: `num_comments>50,created_at_i>${twoDaysAgo}`,
-        hitsPerPage: 10,
+        numericFilters: `points>1,created_at_i>${twoDaysAgo}`,
+        hitsPerPage: 50,
       },
       timeout: 10000,
     });
 
-    if (!data.hits.length) throw new Error('No HN stories found even in fallback');
+    const candidates = data.hits.filter((h) => h.num_comments > 50);
+    if (!candidates.length) throw new Error('No HN stories found even in fallback');
 
-    const top = data.hits.sort((a, b) => b.num_comments - a.num_comments)[0];
+    const top = candidates.sort((a, b) => b.num_comments - a.num_comments)[0];
     const hoursAgo = Math.round((Date.now() - new Date(top.created_at).getTime()) / 3_600_000);
     return { ...top, hoursAgo, velocity: top.num_comments / Math.max(1, hoursAgo) };
   }
@@ -90,7 +99,14 @@ export class HNIntegration {
   // Feed-specific methods (return HackerNewsCard[])
   // ─────────────────────────────────────────────
 
-  /** Fetches `count` HN stories as feed cards, optionally category-filtered */
+  /**
+   * Fetches ALL HN stories from the last 24 h for the given category.
+   *
+   * For 'all' we use the Firebase top-stories list (up to 500 IDs).
+   * For 'ai' / 'startups' we paginate through Algolia (max 5 pages × 50 = 250
+   * hits) so we capture every matching story in the 24-hour window instead of
+   * just the first page.
+   */
   static async getStoriesBatch(count: number, category: HNFeedCategory = 'all'): Promise<HackerNewsCard[]> {
     if (category === 'all') {
       return this.fetchTopStoriesFirebase(count);
@@ -99,34 +115,39 @@ export class HNIntegration {
     const oneDayAgo = Math.floor(Date.now() / 1000) - 86400;
     const keywords = CATEGORY_KEYWORDS[category];
 
-    const params: Record<string, unknown> = {
+    const baseParams: Record<string, unknown> = {
       tags: 'story',
-      numericFilters: `points>10,created_at_i>${oneDayAgo}`,
-      hitsPerPage: Math.min(count * 3, 50),
+      numericFilters: `points>1,created_at_i>${oneDayAgo}`,
+      hitsPerPage: 50,
     };
-
-    if (keywords) {
-      params.query = keywords;
-    }
+    if (keywords) baseParams.query = keywords;
 
     try {
-      const { data } = await axios.get<HNSearchResponse>(`${this.BASE}/search`, {
-        params,
-        timeout: 10000,
-      });
+      // ── Paginate through all available Algolia pages (max 5) ──────────────
+      const allHits: HNSearchResponse['hits'] = [];
+      let page = 0;
+      let totalPages = 1; // will be updated from first response
 
-      if (!data.hits.length) return [];
+      while (page < totalPages && page < 5) {
+        const { data } = await axios.get<HNSearchResponse>(`${this.BASE}/search`, {
+          params: { ...baseParams, page },
+          timeout: 10000,
+        });
 
-      const sorted = data.hits
+        allHits.push(...data.hits);
+        totalPages = data.nbPages ?? 1;
+        page++;
+      }
+
+      console.log(`[HN] getStoriesBatch(${category}): fetched ${allHits.length} hits across ${page} page(s)`);
+
+      if (!allHits.length) return [];
+
+      const sorted = allHits
         .filter((h) => h.title)
         .sort((a, b) => (b.points + b.num_comments * 2) - (a.points + a.num_comments * 2));
 
-      if (!sorted.length) {
-        console.log('[HN] Sorted hits empty.');
-        return [];
-      }
-
-      return sorted.slice(0, count).map((story) => {
+      return sorted.map((story) => {
         const hoursAgo = Math.round(
           (Date.now() - new Date(story.created_at).getTime()) / 3_600_000
         );
@@ -206,6 +227,7 @@ export class HNIntegration {
 
   /**
    * Fetches normal HN stories (topstories) using the official Firebase API.
+   * Hydrates up to `count` IDs from the ranked top-500 list — no hard cap.
    */
   private static async fetchTopStoriesFirebase(count: number): Promise<HackerNewsCard[]> {
     const FIREBASE = 'https://hacker-news.firebaseio.com/v0';
@@ -221,8 +243,8 @@ export class HNIntegration {
         return [];
       }
 
-      // Step 2: hydrate items
-      const candidateIds = ids.slice(0, Math.min(count * 3, 60));
+      // Step 2: hydrate items — take up to `count` IDs (Firebase gives up to 500)
+      const candidateIds = ids.slice(0, count);
       const itemResults = await Promise.allSettled(
         candidateIds.map((id) =>
           axios.get<HNFirebaseItem>(`${FIREBASE}/item/${id}.json`, { timeout: 8_000 })
@@ -247,7 +269,7 @@ export class HNIntegration {
         cards.push({
           id: uuid(),
           type: 'hackernews' as const,
-          category: 'programming', // Normal HN stories fallback
+          category: 'programming',
           fetchedAt: new Date().toISOString(),
           title: item.title,
           description: '',
@@ -260,10 +282,9 @@ export class HNIntegration {
             source,
           },
         });
-
-        if (cards.length >= count) break;
       }
 
+      console.log(`[HN] fetchTopStoriesFirebase: hydrated ${cards.length}/${candidateIds.length} items`);
       return cards;
     } catch (err) {
       console.warn(`[HN] fetchTopStoriesFirebase failed:`, err instanceof Error ? err.message : err);
@@ -298,8 +319,8 @@ export class HNIntegration {
         return [];
       }
 
-      // Step 2: hydrate items (fetch count*3 then filter/slice to count)
-      const candidateIds = ids.slice(0, Math.min(count * 3, 60));
+      // Step 2: hydrate items — fetch ALL available IDs (up to 200 from Firebase)
+      const candidateIds = ids.slice(0, Math.min(count, ids.length));
       const itemResults = await Promise.allSettled(
         candidateIds.map((id) =>
           axios.get<HNFirebaseItem>(`${FIREBASE}/item/${id}.json`, { timeout: 8_000 })

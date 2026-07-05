@@ -64,9 +64,9 @@ export const SOURCE_FETCHERS: Record<string, () => Promise<FeedCard[]>> = {
     GitHubIntegration.getTrendingBatch(50, 'ai'),
   ]).then(r => r.flat()),
   hackernews: () => Promise.all([
-    HNIntegration.getStoriesBatch(20, 'ai'),
-    HNIntegration.getStoriesBatch(20, 'startups'),
-    HNIntegration.getStoriesBatch(20, 'all'),
+    HNIntegration.getStoriesBatch(200, 'ai'),      // all AI stories from last 24h
+    HNIntegration.getStoriesBatch(200, 'startups'), // all startup stories from last 24h
+    HNIntegration.getStoriesBatch(300, 'all'),      // top 300 from Firebase ranked list
   ]).then(r => r.flat()),
   stackoverflow: () => SOIntegration.getRandomTop(20).then(so => so.map(soToCard)),
   leetcode: () => LeetCodeIntegration.getDailyChallenge().then(lc => [leetCodeToCard(lc)]),
@@ -79,9 +79,9 @@ export const SOURCE_FETCHERS: Record<string, () => Promise<FeedCard[]>> = {
   system_design: () => SystemDesignIntegration.getSystemDesignFeeds(50).then(feeds => feeds.map(systemDesignToCard)),
 
   // ─── New: HN variants ────────────────────────────────────
-  ask_hn: () => HNIntegration.getAskHNBatch(30),
-  show_hn: () => HNIntegration.getShowHNBatch(30),
-  hn_job: () => HNIntegration.getJobsBatch(20),
+  ask_hn: () => HNIntegration.getAskHNBatch(200),   // all 200 Ask HN from Firebase
+  show_hn: () => HNIntegration.getShowHNBatch(200),  // all 200 Show HN from Firebase
+  hn_job: () => HNIntegration.getJobsBatch(50),
 
   // ─── New: Dev ecosystem ──────────────────────────────────
   crates_io: () => CratesIoIntegration.getTrendingCrates(25),
@@ -163,7 +163,7 @@ export async function runFeedSync(sources?: string[]): Promise<SyncResult> {
 
     // 💻 Programming & Tech
     github: 24,
-    hackernews: 16,
+    hackernews: 24,  // full 24-hour window
     ask_hn: 24,
     show_hn: 24,
     hn_job: 7 * 24,

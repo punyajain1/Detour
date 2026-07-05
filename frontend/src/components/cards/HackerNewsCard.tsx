@@ -81,8 +81,8 @@ export const HackerNewsCard: React.FC<{ card: FeedCard }> = ({ card }) => {
           </div>
         )}
 
-        {/* Show HN: two buttons — HN discussion + external site */}
-        {card.type === 'show_hn' ? (
+        {/* hackernews + show_hn: two buttons — HN discussion + external article/site */}
+        {card.type === 'show_hn' || card.type === 'hackernews' ? (
           <div style={{ marginTop: 'auto', marginBottom: '24px', display: 'flex', gap: '8px' }}>
             <motion.a
               whileHover={{ background: '#000000', color: '#ffffff' }}
@@ -113,11 +113,12 @@ export const HackerNewsCard: React.FC<{ card: FeedCard }> = ({ card }) => {
                 letterSpacing: '0.05em', fontSize: '0.75rem'
               }}
             >
-              <span>Visit Site</span>
+              <span>{card.type === 'show_hn' ? 'Visit Site' : 'Read Article'}</span>
               <ArrowUpRight size={14} strokeWidth={3} />
             </motion.a>
           </div>
         ) : (
+          /* ask_hn: single button — URL is already the HN thread */
           <motion.a 
             whileHover={{ background: '#000000', color: '#ffffff' }}
             whileTap={{ scale: 0.98 }}
@@ -129,7 +130,7 @@ export const HackerNewsCard: React.FC<{ card: FeedCard }> = ({ card }) => {
               letterSpacing: '0.05em', fontSize: '0.8rem'
             }}
           >
-            <span>{card.type === 'ask_hn' ? 'Read Discussion' : 'Read Full Discussion'}</span>
+            <span>Read Discussion</span>
             <ArrowUpRight size={16} strokeWidth={3} />
           </motion.a>
         )}
