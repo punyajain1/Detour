@@ -13,7 +13,6 @@ import { NasaMarsCard } from './cards/NasaMarsCard';
 import { NasaNeoWsCard } from './cards/NasaNeoWsCard';
 import { SpaceNewsCard } from './cards/SpaceNewsCard';
 import { JwstCard } from './cards/JwstCard';
-// New card components
 import { DevPackageCard } from './cards/DevPackageCard';
 import { SecurityCard } from './cards/SecurityCard';
 import { AIResearchCard } from './cards/AIResearchCard';
@@ -23,6 +22,7 @@ import { CodeforcesCard } from './cards/CodeforcesCard';
 import { NasaExoplanetCard } from './cards/NasaExoplanetCard';
 import { NasaImageLibraryCard } from './cards/NasaImageLibraryCard';
 import { LobstersCard } from './cards/LobstersCard';
+import { AiNewsCard } from './cards/AiNewsCard';
 
 interface FeedCardProps {
   card: FeedCard;
@@ -81,6 +81,9 @@ export const FeedCardComponent: React.FC<FeedCardProps> = ({ card }) => {
 
     // ─── Lobste.rs ────────────────────────────────────
     if (card.type === 'lobsters') return <LobstersCard card={card as any} />;
+
+    // ─── AI News ──────────────────────────────────────
+    if (card.type === 'ai_news') return <AiNewsCard card={card as any} />;
 
     return null;
   };

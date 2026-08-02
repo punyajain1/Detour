@@ -5,7 +5,7 @@ import {
   Newspaper, HelpCircle, Rocket, Aperture, BookOpen, Network,
   MessageSquare, Presentation, Briefcase, FileCode, PackageOpen,
   Package, Box, Trophy, ShieldAlert, Smile, FileText, GraduationCap,
-  Satellite, Sun, LayoutGrid, SatelliteDish, Image,
+  Satellite, Sun, LayoutGrid, SatelliteDish, Image, Sparkles
 } from 'lucide-react';
 
 interface BottomNavBarProps {
@@ -42,6 +42,7 @@ const FILTER_GROUPS = [
       { id: 'hn_job', label: 'HN Jobs', description: 'YC startup job postings', icon: Briefcase },
       { id: 'lobsters', label: 'Lobste.rs', description: 'Computing community stories', icon: FileCode },
       { id: 'system_design', label: 'System Design', description: 'Architecture case studies', icon: Network },
+      { id: 'ai_news', label: 'AI News', description: 'AI industry news & updates', icon: Sparkles },
     ],
   },
   {

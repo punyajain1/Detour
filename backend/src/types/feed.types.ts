@@ -29,7 +29,8 @@ export type FeedCardType =
   | 'huggingface'
   | 'papers_with_code'
   | 'space_weather'
-  | 'lobsters';
+  | 'lobsters'
+  | 'ai_news';
 
 /** Base fields every card must have */
 interface FeedCardBase {
@@ -399,6 +400,21 @@ export interface PapersWithCodeCard extends FeedCardBase {
   };
 }
 
+// ─── AI News ──────────────────────────────────────
+
+export interface AiNewsCard extends FeedCardBase {
+  type: 'ai_news';
+  category: 'ai';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    source: string;
+    authorOrCompany?: string;
+    publishedAt?: string;
+  };
+}
+
 
 
 // ─── Lobste.rs ───────────────────────────────
@@ -510,7 +526,8 @@ export type FeedCard =
   | HuggingFaceCard
   | PapersWithCodeCard
   | SpaceWeatherCard
-  | LobstersCard;
+  | LobstersCard
+  | AiNewsCard;
 
 export interface FeedPage {
   cards: FeedCard[];

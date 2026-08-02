@@ -26,6 +26,7 @@ import { SpaceWeatherIntegration } from '../integrations/space-weather.integrati
 import { NasaExoplanetsIntegration } from '../integrations/nasa-exoplanets.integration';
 import { NasaImageLibraryIntegration } from '../integrations/nasa-image-library.integration';
 import { LobstersIntegration } from '../integrations/lobsters.integration';
+import { AiNewsIntegration } from '../integrations/ai-news.integration';
 
 import {
   FeedCard,
@@ -93,6 +94,7 @@ export const SOURCE_FETCHERS: Record<string, () => Promise<FeedCard[]>> = {
   // ─── New: AI / ML ─────────────────────────────────────────
   huggingface: () => HuggingFaceIntegration.getTrendingModels(25),
   papers_with_code: () => PapersWithCodeIntegration.getLatestPapers(20),
+  ai_news: () => AiNewsIntegration.getAiNews(50),
 
   // ─── New: Space ──────────────────────────────────
   space_weather: () => SpaceWeatherIntegration.getAlerts(10),

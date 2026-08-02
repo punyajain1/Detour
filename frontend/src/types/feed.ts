@@ -25,7 +25,8 @@ export type FeedCardType =
   | 'huggingface'
   | 'papers_with_code'
   | 'space_weather'
-  | 'lobsters';
+  | 'lobsters'
+  | 'ai_news';
 
 export interface FeedCardBase {
   id: string;
@@ -435,6 +436,21 @@ export interface LobstersCard extends FeedCardBase {
   };
 }
 
+// ─── AI News ──────────────────────────────────────
+
+export interface AiNewsCard extends FeedCardBase {
+  type: 'ai_news';
+  category: 'ai';
+  title: string;
+  description: string;
+  url: string;
+  metadata: {
+    source: string;
+    authorOrCompany?: string;
+    publishedAt?: string;
+  };
+}
+
 // ─────────────────────────────────────────────
 // Discriminated Union
 // ─────────────────────────────────────────────
@@ -463,7 +479,8 @@ export type FeedCard =
   | SpaceWeatherCard
   | NasaExoplanetCard
   | NasaImageLibraryCard
-  | LobstersCard;
+  | LobstersCard
+  | AiNewsCard;
 
 export interface FeedPage {
   cards: FeedCard[];
