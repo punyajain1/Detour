@@ -4,10 +4,10 @@ import { v4 as uuid } from 'uuid';
 
 type HNFeedCategory = 'ai' | 'startups' | 'all';
 
-const CATEGORY_KEYWORDS: Record<HNFeedCategory, string> = {
-  ai: 'AI OR LLM OR GPT OR "machine learning" OR "neural network" OR "deep learning" OR Claude OR Gemini',
-  startups: '"Show HN" OR YC OR "Y Combinator" OR startup OR "Series A" OR "raised"',
-  all: '',
+// Each keyword is searched separately — Algolia HN search does not support boolean OR in query strings
+const CATEGORY_KEYWORD_LISTS: Record<Exclude<HNFeedCategory, 'all'>, string[]> = {
+  ai: ['AI', 'LLM', 'GPT', 'machine learning', 'neural network', 'deep learning', 'Claude', 'Gemini', 'OpenAI', 'Anthropic'],
+  startups: ['Show HN', 'YC', 'Y Combinator', 'startup', 'Series A', 'raised funding'],
 };
 
 interface HNSearchResponse {
@@ -113,33 +113,32 @@ export class HNIntegration {
     }
 
     const oneDayAgo = Math.floor(Date.now() / 1000) - 86400;
-    const keywords = CATEGORY_KEYWORDS[category];
-
-    const baseParams: Record<string, unknown> = {
-      tags: 'story',
-      numericFilters: `points>1,created_at_i>${oneDayAgo}`,
-      hitsPerPage: 50,
-    };
-    if (keywords) baseParams.query = keywords;
+    const keywords = CATEGORY_KEYWORD_LISTS[category];
 
     try {
-      // ── Paginate through all available Algolia pages (max 5) ──────────────
-      const allHits: HNSearchResponse['hits'] = [];
-      let page = 0;
-      let totalPages = 1; // will be updated from first response
+      // Run one Algolia search per keyword and merge — boolean OR is not supported
+      const perKeyword = Math.max(10, Math.ceil(count / keywords.length));
+      const allHitsMap = new Map<string, HNSearchResponse['hits'][0]>();
 
-      while (page < totalPages && page < 5) {
-        const { data } = await axios.get<HNSearchResponse>(`${this.BASE}/search`, {
-          params: { ...baseParams, page },
-          timeout: 10000,
-        });
-
-        allHits.push(...data.hits);
-        totalPages = data.nbPages ?? 1;
-        page++;
+      for (const keyword of keywords) {
+        try {
+          const { data } = await axios.get<HNSearchResponse>(`${this.BASE}/search`, {
+            params: {
+              tags: 'story',
+              query: keyword,
+              numericFilters: `points>1,created_at_i>${oneDayAgo}`,
+              hitsPerPage: perKeyword,
+            },
+            timeout: 10000,
+          });
+          for (const hit of data.hits) {
+            if (!allHitsMap.has(hit.objectID)) allHitsMap.set(hit.objectID, hit);
+          }
+        } catch { /* skip failed keyword */ }
       }
 
-      console.log(`[HN] getStoriesBatch(${category}): fetched ${allHits.length} hits across ${page} page(s)`);
+      const allHits = Array.from(allHitsMap.values());
+      console.log(`[HN] getStoriesBatch(${category}): fetched ${allHits.length} unique hits across ${keywords.length} keyword(s)`);
 
       if (!allHits.length) return [];
 

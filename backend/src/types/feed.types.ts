@@ -650,12 +650,15 @@ export interface SystemDesignData {
   summary: string;
   url: string;
   sourceType:
-    | 'engineering_blog'
-    | 'hackernews'
-    | 'arxiv_paper'
-    | 'architecture_blog'
-    | 'database_blog'
-    | 'infrastructure_blog';
+  | 'engineering_blog'
+  | 'hackernews'
+  | 'arxiv_paper'
+  | 'architecture_blog'
+  | 'database_blog'
+  | 'infrastructure_blog'
+  | 'ai_blog'
+  | 'security_blog'
+  | 'observability_blog';  // ← add this
   authorOrCompany: string;
   published_at?: string;
   tags?: string[];

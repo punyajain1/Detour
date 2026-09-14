@@ -93,7 +93,7 @@ const RSS_ATOM_FEEDS: FeedSource[] = [
   // ── Engineering Blogs ────────────────────────────────────────────────────
   { company: 'Netflix', url: 'https://netflixtechblog.com/feed', sourceType: 'engineering_blog' },
   { company: 'Cloudflare', url: 'https://blog.cloudflare.com/rss/', sourceType: 'engineering_blog' },
-  { company: 'Stripe', url: 'https://stripe.com/blog/feed.xml', sourceType: 'engineering_blog' },
+  { company: 'Stripe', url: 'https://stripe.com/blog/feed.rss', sourceType: 'engineering_blog' },
   { company: 'GitHub Engineering', url: 'https://github.blog/engineering/feed/', sourceType: 'engineering_blog' },
   { company: 'AWS Architecture', url: 'https://aws.amazon.com/blogs/architecture/feed/', sourceType: 'engineering_blog' },
   { company: 'Google Cloud', url: 'https://cloud.google.com/blog/products/rss', sourceType: 'engineering_blog' },
@@ -101,29 +101,74 @@ const RSS_ATOM_FEEDS: FeedSource[] = [
   { company: 'Shopify Engineering', url: 'https://shopify.engineering/blogs/engineering.atom', sourceType: 'engineering_blog' },
   { company: 'Dropbox Tech', url: 'https://dropbox.tech/feed', sourceType: 'engineering_blog' },
   { company: 'Slack Engineering', url: 'https://slack.engineering/feed/', sourceType: 'engineering_blog' },
-  { company: 'Datadog Engineering', url: 'https://www.datadoghq.com/blog/rss/', sourceType: 'engineering_blog' },
-  { company: 'Canva Engineering', url: 'https://www.canva.dev/blog/rss.xml', sourceType: 'engineering_blog' },
+  { company: 'Canva Engineering', url: 'https://www.canva.dev/blog/engineering/feed.xml', sourceType: 'engineering_blog' },
   { company: 'Instacart Engineering', url: 'https://tech.instacart.com/feed', sourceType: 'engineering_blog' },
-  { company: 'DoorDash Engineering', url: 'https://doordash.engineering/feed', sourceType: 'engineering_blog' },
   { company: 'Vercel Engineering', url: 'https://vercel.com/blog/rss.xml', sourceType: 'engineering_blog' },
   // ── Medium Engineering Publications ─────────────────────────────────────
   { company: 'Airbnb Engineering', url: 'https://medium.com/feed/airbnb-engineering', sourceType: 'engineering_blog' },
   { company: 'Pinterest Engineering', url: 'https://medium.com/feed/pinterest-engineering', sourceType: 'engineering_blog' },
   // ── Architecture & System Design ─────────────────────────────────────────
   { company: 'Martin Fowler', url: 'https://martinfowler.com/feed.atom', sourceType: 'architecture_blog' },
-  { company: 'InfoQ Architecture', url: 'https://www.infoq.com/architecture-design/feed/', sourceType: 'architecture_blog' },
   { company: 'High Scalability', url: 'https://feeds.feedburner.com/HighScalability', sourceType: 'architecture_blog' },
   { company: 'ByteByteGo', url: 'https://blog.bytebytego.com/feed', sourceType: 'architecture_blog' },
+  { company: 'The Pragmatic Engineer', url: 'https://newsletter.pragmaticengineer.com/feed', sourceType: 'architecture_blog' },
   // ── Database & Storage ────────────────────────────────────────────────────
   { company: 'MongoDB', url: 'https://www.mongodb.com/blog/rss', sourceType: 'database_blog' },
-  { company: 'CockroachDB', url: 'https://www.cockroachlabs.com/blog/rss/', sourceType: 'database_blog' },
   { company: 'PlanetScale', url: 'https://planetscale.com/blog/rss.xml', sourceType: 'database_blog' },
   { company: 'ScyllaDB', url: 'https://www.scylladb.com/feed/', sourceType: 'database_blog' },
+  { company: 'Neon Database', url: 'https://neon.tech/blog/rss.xml', sourceType: 'database_blog' },
   // ── CNCF / Infrastructure ─────────────────────────────────────────────────
   { company: 'Kubernetes', url: 'https://kubernetes.io/feed.xml', sourceType: 'infrastructure_blog' },
   { company: 'CNCF', url: 'https://www.cncf.io/feed/', sourceType: 'infrastructure_blog' },
   { company: 'Grafana', url: 'https://grafana.com/blog/index.xml', sourceType: 'infrastructure_blog' },
   { company: 'Prometheus', url: 'https://prometheus.io/blog/index.xml', sourceType: 'infrastructure_blog' },
+  // ── Engineering Blogs ──────────────────────────────────────────────────────
+  { company: 'Meta Engineering', url: 'https://engineering.fb.com/feed/', sourceType: 'engineering_blog' },
+  { company: 'LinkedIn Engineering', url: 'https://engineering.linkedin.com/blog.rss.html', sourceType: 'engineering_blog' },
+  { company: 'Uber Engineering', url: 'https://www.uber.com/blog/engineering/rss/', sourceType: 'engineering_blog' },
+  { company: 'Reddit Engineering', url: 'https://redditinc.com/blog/rss.xml', sourceType: 'engineering_blog' },
+  { company: 'DigitalOcean', url: 'https://www.digitalocean.com/blog/rss.xml', sourceType: 'engineering_blog' },
+  { company: 'Confluent', url: 'https://www.confluent.io/blog/feed/', sourceType: 'engineering_blog' },
+  { company: 'HashiCorp', url: 'https://www.hashicorp.com/blog/feed.xml', sourceType: 'engineering_blog' },
+  { company: 'Elastic', url: 'https://www.elastic.co/blog/feed', sourceType: 'engineering_blog' },
+  { company: 'Snowflake', url: 'https://www.snowflake.com/blog/feed/', sourceType: 'engineering_blog' },
+  { company: 'ClickHouse', url: 'https://clickhouse.com/blog/rss.xml', sourceType: 'engineering_blog' },
+
+  // ── AI Engineering ─────────────────────────────────────────────────────────
+  { company: 'OpenAI', url: 'https://openai.com/news/rss.xml', sourceType: 'ai_blog' },
+  { company: 'Anthropic', url: 'https://www.anthropic.com/news/rss.xml', sourceType: 'ai_blog' },
+  { company: 'Google AI', url: 'https://blog.google/technology/ai/rss/', sourceType: 'ai_blog' },
+  { company: 'DeepMind', url: 'https://deepmind.google/discover/blog/rss.xml', sourceType: 'ai_blog' },
+  { company: 'Hugging Face', url: 'https://huggingface.co/blog/feed.xml', sourceType: 'ai_blog' },
+  { company: 'AWS AI', url: 'https://aws.amazon.com/blogs/machine-learning/feed/', sourceType: 'ai_blog' },
+
+  // ── Architecture & System Design ───────────────────────────────────────────
+  { company: 'InfoQ Architecture', url: 'https://feed.infoq.com/architecture-design', sourceType: 'architecture_blog' },
+  { company: 'InfoQ Cloud', url: 'https://feed.infoq.com/cloud-computing', sourceType: 'architecture_blog' },
+  { company: 'Thoughtworks Insights', url: 'https://www.thoughtworks.com/rss/insights.xml', sourceType: 'architecture_blog' },
+  { company: 'Netflix TechBlog', url: 'https://netflixtechblog.com/feed', sourceType: 'architecture_blog' },
+
+  // ── Databases ──────────────────────────────────────────────────────────────
+  { company: 'PostgreSQL', url: 'https://www.postgresql.org/feeds/news.rss', sourceType: 'database_blog' },
+  { company: 'Redis', url: 'https://redis.com/feed/', sourceType: 'database_blog' },
+  { company: 'Yugabyte', url: 'https://www.yugabyte.com/blog/feed/', sourceType: 'database_blog' },
+  { company: 'SingleStore', url: 'https://www.singlestore.com/blog/feed/', sourceType: 'database_blog' },
+
+  // ── CNCF / Cloud Native ────────────────────────────────────────────────────
+  { company: 'Istio', url: 'https://istio.io/latest/feed.xml', sourceType: 'infrastructure_blog' },
+  { company: 'Linkerd', url: 'https://linkerd.io/feed.xml', sourceType: 'infrastructure_blog' },
+  { company: 'Envoy', url: 'https://www.envoyproxy.io/feed.xml', sourceType: 'infrastructure_blog' },
+  { company: 'OpenTelemetry', url: 'https://opentelemetry.io/feed.xml', sourceType: 'infrastructure_blog' },
+  { company: 'Helm', url: 'https://helm.sh/blog/index.xml', sourceType: 'infrastructure_blog' },
+
+  // ── Security Engineering ───────────────────────────────────────────────────
+  { company: 'Google Security Blog', url: 'https://security.googleblog.com/atom.xml', sourceType: 'security_blog' },
+  { company: 'Cloudflare Security', url: 'https://blog.cloudflare.com/tag/security/rss/', sourceType: 'security_blog' },
+  { company: 'Trail of Bits', url: 'https://blog.trailofbits.com/feed/', sourceType: 'security_blog' },
+
+  // ── Observability ──────────────────────────────────────────────────────────
+  { company: 'Grafana Engineering', url: 'https://grafana.com/blog/index.xml', sourceType: 'observability_blog' },
+  { company: 'Honeycomb', url: 'https://www.honeycomb.io/blog/rss.xml', sourceType: 'observability_blog' },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -152,32 +197,14 @@ const HN_QUERIES = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ArXiv multi-term search
-// ─────────────────────────────────────────────────────────────────────────────
-
-const ARXIV_SEARCH_TERMS = [
-  'distributed systems',
-  'distributed databases',
-  'database systems',
-  'fault tolerance',
-  'consensus',
-  'replication',
-  'sharding',
-  'storage systems',
-  'networking',
-  'cloud computing',
-  'large scale systems',
-  'service mesh',
-];
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Scrape-only sites (no RSS available)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SCRAPE_SITES = [
   { company: 'Discord Engineering', url: 'https://discord.com/blog' },
   { company: 'Uber Engineering', url: 'https://www.uber.com/blog/engineering/' },
-  { company: 'Figma Engineering', url: 'https://www.figma.com/blog/section/engineering/' },
+  { company: 'Figma Engineering', url: 'https://www.figma.com/blog/' },
+  { company: 'DoorDash Engineering', url: 'https://doordash.engineering/' },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -197,17 +224,15 @@ const XML_PARSER = new XMLParser({
 export class SystemDesignIntegration {
   public static async getSystemDesignFeeds(limitPerSource: number = 15): Promise<SystemDesignData[]> {
     try {
-      const [blogs, hn, arxiv, scraped] = await Promise.allSettled([
+      const [blogs, hn, scraped] = await Promise.allSettled([
         this.fetchAllRssAtomFeeds(limitPerSource),
         this.fetchHNMultiQuery(limitPerSource),
-        this.fetchArxivMultiTerm(limitPerSource),
         this.fetchScrapedSites(limitPerSource),
       ]);
 
       const allData = [
         ...(blogs.status === 'fulfilled' ? blogs.value : []),
         ...(hn.status === 'fulfilled' ? hn.value : []),
-        ...(arxiv.status === 'fulfilled' ? arxiv.value : []),
         ...(scraped.status === 'fulfilled' ? scraped.value : []),
       ];
 
@@ -243,7 +268,11 @@ export class SystemDesignIntegration {
     try {
       const response = await axios.get(feed.url, {
         timeout: 12000,
-        headers: { 'User-Agent': 'Detour-FeedBot/1.0 (+https://detour.app)' },
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Detour-FeedBot/1.0; +https://detour.app)',
+          'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
       });
 
       const parsed = XML_PARSER.parse(response.data);
@@ -372,89 +401,7 @@ export class SystemDesignIntegration {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // ArXiv — 12 search terms
-  // ───────────────────────────────────────────────────────────────────────────
-
-  private static async fetchArxivMultiTerm(limitPerTerm: number): Promise<SystemDesignData[]> {
-    // Spread requests to avoid hammering ArXiv
-    const results = await Promise.allSettled(
-      ARXIV_SEARCH_TERMS.map(term => this.fetchArxivTerm(term, limitPerTerm))
-    );
-
-    return results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
-  }
-
-  private static async fetchArxivTerm(term: string, limit: number): Promise<SystemDesignData[]> {
-    try {
-      const response = await axios.get('https://export.arxiv.org/api/query', {
-        params: {
-          search_query: `all:"${term}"`,
-          max_results: limit,
-          sortBy: 'lastUpdatedDate',
-          sortOrder: 'descending',
-        },
-        timeout: 12000,
-        headers: { 'User-Agent': 'Detour-FeedBot/1.0' },
-      });
-
-      const parsed = XML_PARSER.parse(response.data);
-      const entries = parsed.feed?.entry;
-      if (!entries) return [];
-
-      const arr: any[] = Array.isArray(entries) ? entries : [entries];
-
-      return arr
-        .map((entry: any): SystemDesignData | null => {
-          try {
-            // Title
-            const title = typeof entry.title === 'string'
-              ? entry.title.replace(/\n/g, ' ').trim()
-              : String(entry.title ?? '').replace(/\n/g, ' ').trim();
-            if (!title) return null;
-
-            // URL — prefer the HTML abstract page
-            const links: any[] = Array.isArray(entry.link) ? entry.link : [entry.link].filter(Boolean);
-            const htmlLink = links.find((l: any) => l['@_type'] === 'text/html' || l['@_rel'] === 'alternate');
-            const url: string = htmlLink?.['@_href'] ?? entry.id ?? '';
-            if (!url) return null;
-
-            // Authors
-            const authorsRaw = Array.isArray(entry.author) ? entry.author : [entry.author];
-            const authors: string[] = authorsRaw.map((a: any) => a?.name).filter(Boolean);
-
-            // Summary
-            const summary = typeof entry.summary === 'string'
-              ? entry.summary.replace(/\n/g, ' ').trim().slice(0, 400)
-              : '';
-
-            // Categories as tags
-            const categories: any[] = Array.isArray(entry.category) ? entry.category : [entry.category].filter(Boolean);
-            const tags = categories.map((c: any) => c?.['@_term']).filter(Boolean);
-
-            return {
-              id: uuid(),
-              title,
-              summary,
-              url,
-              sourceType: 'arxiv_paper',
-              authorOrCompany: authors.slice(0, 3).join(', ') || 'ArXiv',
-              published_at: String(entry.published ?? entry.updated ?? new Date().toISOString()),
-              tags,
-            };
-          } catch {
-            return null;
-          }
-        })
-        .filter((item): item is SystemDesignData => item !== null)
-        .filter(item => isSystemDesignRelated(item.title, item.summary));
-    } catch (err) {
-      console.warn(`[SystemDesign] ArXiv term "${term}" failed:`, err instanceof Error ? err.message : err);
-      return [];
-    }
-  }
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // Cheerio scraping — Discord, Uber, Figma
+  // Cheerio scraping — Discord, Uber, Figma, DoorDash
   // ───────────────────────────────────────────────────────────────────────────
 
   private static async fetchScrapedSites(limit: number): Promise<SystemDesignData[]> {

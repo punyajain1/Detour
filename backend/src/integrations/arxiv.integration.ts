@@ -1,198 +1,235 @@
-import axios from 'axios';
-import { XMLParser } from 'fast-xml-parser';
+/**
+ * ArXiv Integration — RSS/Atom feed-based
+ *
+ * Uses the official rss.arxiv.org feeds instead of the Search API.
+ * Combined-category URLs (e.g. cs.AI+cs.LG) reduce total requests to ~9.
+ * No rate-limit issues; feeds are updated daily by arXiv.
+ *
+ * Feed format: https://rss.arxiv.org/rss/{category}
+ *              https://rss.arxiv.org/rss/{cat1}+{cat2}+{cat3}
+ */
+
+import Parser from 'rss-parser';
 import { ArxivData } from '../types/feed.types';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Feed definitions
+// Each entry maps to ONE HTTP request (combined feeds are free)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ArxivFeed {
+  url: string;
+  /** Feed card category used when writing to DB */
+  feedCategory: 'ai' | 'programming' | 'science';
+  /** Primary arXiv category for metadata */
+  primaryCategory: string;
+}
+
+const ARXIV_RSS_FEEDS: ArxivFeed[] = [
+  // ── CS: Artificial Intelligence & Machine Learning ────────────────────────
+  // cs.AI, cs.LG, cs.CL, cs.CV, cs.NE
+  {
+    url: 'https://rss.arxiv.org/rss/cs.AI+cs.LG+cs.CL+cs.CV+cs.NE',
+    feedCategory: 'ai',
+    primaryCategory: 'cs.AI',
+  },
+  // ── CS: NLP, IR, Multiagent, Multimedia, Sound ────────────────────────────
+  // cs.MA, cs.IR, cs.IT, cs.MM, cs.SD
+  {
+    url: 'https://rss.arxiv.org/rss/cs.MA+cs.IR+cs.IT+cs.MM+cs.SD',
+    feedCategory: 'ai',
+    primaryCategory: 'cs.MA',
+  },
+  // ── CS: Systems, Networking, OS, Databases ────────────────────────────────
+  // cs.DC, cs.DB, cs.NI, cs.OS, cs.SY, cs.PF
+  {
+    url: 'https://rss.arxiv.org/rss/cs.DC+cs.DB+cs.NI+cs.OS+cs.SY+cs.PF',
+    feedCategory: 'programming',
+    primaryCategory: 'cs.DC',
+  },
+  // ── CS: Software Engineering, PL, Architecture ────────────────────────────
+  // cs.SE, cs.PL, cs.AR, cs.CE
+  {
+    url: 'https://rss.arxiv.org/rss/cs.SE+cs.PL+cs.AR+cs.CE',
+    feedCategory: 'programming',
+    primaryCategory: 'cs.SE',
+  },
+  // ── CS: Theory — Complexity, Algorithms, Logic ────────────────────────────
+  // cs.CC, cs.DM, cs.DS, cs.FL, cs.LO, cs.NA, cs.MS, cs.SC
+  {
+    url: 'https://rss.arxiv.org/rss/cs.CC+cs.DM+cs.DS+cs.FL+cs.LO+cs.NA+cs.MS+cs.SC',
+    feedCategory: 'programming',
+    primaryCategory: 'cs.DS',
+  },
+  // ── CS: Applied, Graphics, Security, HCI, Robotics ───────────────────────
+  // cs.CG, cs.CR, cs.CY, cs.DL, cs.ET, cs.GL, cs.GR, cs.GT, cs.HC, cs.RO, cs.SI
+  {
+    url: 'https://rss.arxiv.org/rss/cs.CG+cs.CR+cs.CY+cs.DL+cs.ET+cs.GL+cs.GR+cs.GT+cs.HC+cs.RO+cs.SI',
+    feedCategory: 'programming',
+    primaryCategory: 'cs.CR',
+  },
+  // ── Electrical Engineering & Systems Science ──────────────────────────────
+  // eess.AS, eess.IV, eess.SP, eess.SY
+  {
+    url: 'https://rss.arxiv.org/rss/eess.AS+eess.IV+eess.SP+eess.SY',
+    feedCategory: 'science',
+    primaryCategory: 'eess',
+  },
+  // ── Physics: Astrophysics ─────────────────────────────────────────────────
+  // astro-ph.CO, astro-ph.EP, astro-ph.GA, astro-ph.HE, astro-ph.IM, astro-ph.SR
+  {
+    url: 'https://rss.arxiv.org/rss/astro-ph.CO+astro-ph.EP+astro-ph.GA+astro-ph.HE+astro-ph.IM+astro-ph.SR',
+    feedCategory: 'science',
+    primaryCategory: 'astro-ph',
+  },
+  // ── Physics: Condensed Matter ─────────────────────────────────────────────
+  // cond-mat.dis-nn, cond-mat.mes-hall, cond-mat.mtrl-sci, cond-mat.quant-gas,
+  // cond-mat.soft, cond-mat.stat-mech, cond-mat.str-el, cond-mat.supr-con
+  {
+    url: 'https://rss.arxiv.org/rss/cond-mat.dis-nn+cond-mat.mes-hall+cond-mat.mtrl-sci+cond-mat.quant-gas+cond-mat.soft+cond-mat.stat-mech+cond-mat.str-el+cond-mat.supr-con',
+    feedCategory: 'science',
+    primaryCategory: 'cond-mat',
+  },
+  // ── Physics: High Energy, Quantum, Nuclear ────────────────────────────────
+  // gr-qc, hep-ex, hep-lat, hep-ph, hep-th, math-ph, nucl-ex, nucl-th, quant-ph
+  {
+    url: 'https://rss.arxiv.org/rss/gr-qc+hep-ex+hep-lat+hep-ph+hep-th+math-ph+nucl-ex+nucl-th+quant-ph',
+    feedCategory: 'science',
+    primaryCategory: 'quant-ph',
+  },
+  // ── Physics: General Subcategories (part 1) ───────────────────────────────
+  // physics.acc-ph, physics.ao-ph, physics.app-ph, physics.atm-clus, physics.atom-ph,
+  // physics.bio-ph, physics.chem-ph, physics.class-ph, physics.comp-ph, physics.data-an
+  {
+    url: 'https://rss.arxiv.org/rss/physics.acc-ph+physics.ao-ph+physics.app-ph+physics.atm-clus+physics.atom-ph+physics.bio-ph+physics.chem-ph+physics.class-ph+physics.comp-ph+physics.data-an',
+    feedCategory: 'science',
+    primaryCategory: 'physics',
+  },
+  // ── Physics: General Subcategories (part 2) + Nonlinear Sciences ─────────
+  // physics.flu-dyn, physics.geo-ph, physics.ins-det, physics.med-ph, physics.optics,
+  // physics.plasm-ph, physics.pop-ph, physics.soc-ph, physics.space-ph,
+  // nlin.AO, nlin.CD, nlin.CG, nlin.PS, nlin.SI
+  {
+    url: 'https://rss.arxiv.org/rss/physics.flu-dyn+physics.geo-ph+physics.ins-det+physics.med-ph+physics.optics+physics.plasm-ph+physics.pop-ph+physics.soc-ph+physics.space-ph+nlin.AO+nlin.CD+nlin.CG+nlin.PS+nlin.SI',
+    feedCategory: 'science',
+    primaryCategory: 'physics',
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Extract the canonical arXiv ID from a link like https://arxiv.org/abs/2506.12345v1 */
+function extractArxivId(link: string): string {
+  const match = link.match(/arxiv\.org\/abs\/([^\s?#]+)/i);
+  return match ? match[1] : link;
+}
+
+/** Strip HTML tags and excess whitespace from RSS description fields */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 500);
+}
+
+// Shared rss-parser instance — configured for arXiv feeds
+const rssParser = new Parser({
+  timeout: 20000,
+  headers: {
+    'User-Agent': 'Detour/1.0 (https://detour.app; academic feed aggregator)',
+    'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml',
+  },
+  customFields: {
+    item: [
+      ['dc:creator', 'creator'],
+      ['arxiv:primary_category', 'arxivCategory', { keepArray: false }],
+    ],
+  },
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main integration class
+// ─────────────────────────────────────────────────────────────────────────────
+
 export class ArxivIntegration {
-  private static BASE = 'http://export.arxiv.org/api/query';
-  // Full arXiv taxonomy — Computer Science, Electrical Engineering & Systems Science, Physics
-  // Source: https://arxiv.org/category_taxonomy
-  private static CATEGORIES = [
-    // ── Computer Science ──────────────────────────────────────────────
-    'cs.AI',   // Artificial Intelligence
-    'cs.AR',   // Hardware Architecture
-    'cs.CC',   // Computational Complexity
-    'cs.CE',   // Computational Engineering, Finance, and Science
-    'cs.CG',   // Computational Geometry
-    'cs.CL',   // Computation and Language (NLP)
-    'cs.CR',   // Cryptography and Security
-    'cs.CV',   // Computer Vision and Pattern Recognition
-    'cs.CY',   // Computers and Society
-    'cs.DB',   // Databases
-    'cs.DC',   // Distributed, Parallel, and Cluster Computing
-    'cs.DL',   // Digital Libraries
-    'cs.DM',   // Discrete Mathematics
-    'cs.DS',   // Data Structures and Algorithms
-    'cs.ET',   // Emerging Technologies
-    'cs.FL',   // Formal Languages and Automata Theory
-    'cs.GL',   // General Literature
-    'cs.GR',   // Graphics
-    'cs.GT',   // Computer Science and Game Theory
-    'cs.HC',   // Human-Computer Interaction
-    'cs.IR',   // Information Retrieval
-    'cs.IT',   // Information Theory
-    'cs.LG',   // Machine Learning
-    'cs.LO',   // Logic in Computer Science
-    'cs.MA',   // Multiagent Systems
-    'cs.MM',   // Multimedia
-    'cs.MS',   // Mathematical Software
-    'cs.NA',   // Numerical Analysis
-    'cs.NE',   // Neural and Evolutionary Computing
-    'cs.NI',   // Networking and Internet Architecture
-    'cs.OS',   // Operating Systems
-    'cs.PF',   // Performance
-    'cs.PL',   // Programming Languages
-    'cs.RO',   // Robotics
-    'cs.SC',   // Symbolic Computation
-    'cs.SD',   // Sound
-    'cs.SE',   // Software Engineering
-    'cs.SI',   // Social and Information Networks
-    'cs.SY',   // Systems and Control (alias for eess.SY)
-
-    // ── Electrical Engineering and Systems Science ─────────────────────
-    'eess.AS', // Audio and Speech Processing
-    'eess.IV', // Image and Video Processing
-    'eess.SP', // Signal Processing
-    'eess.SY', // Systems and Control
-
-    // ── Physics: Astrophysics ──────────────────────────────────────────
-    'astro-ph.CO', // Cosmology and Nongalactic Astrophysics
-    'astro-ph.EP', // Earth and Planetary Astrophysics
-    'astro-ph.GA', // Astrophysics of Galaxies
-    'astro-ph.HE', // High Energy Astrophysical Phenomena
-    'astro-ph.IM', // Instrumentation and Methods for Astrophysics
-    'astro-ph.SR', // Solar and Stellar Astrophysics
-
-    // ── Physics: Condensed Matter ──────────────────────────────────────
-    'cond-mat.dis-nn',  // Disordered Systems and Neural Networks
-    'cond-mat.mes-hall',// Mesoscale and Nanoscale Physics
-    'cond-mat.mtrl-sci',// Materials Science
-    'cond-mat.quant-gas',// Quantum Gases
-    'cond-mat.soft',    // Soft Condensed Matter
-    'cond-mat.stat-mech',// Statistical Mechanics
-    'cond-mat.str-el',  // Strongly Correlated Electrons
-    'cond-mat.supr-con',// Superconductivity
-
-    // ── Physics: Other ─────────────────────────────────────────────────
-    'gr-qc',           // General Relativity and Quantum Cosmology
-    'hep-ex',          // High Energy Physics - Experiment
-    'hep-lat',         // High Energy Physics - Lattice
-    'hep-ph',          // High Energy Physics - Phenomenology
-    'hep-th',          // High Energy Physics - Theory
-    'math-ph',         // Mathematical Physics
-    'nucl-ex',         // Nuclear Experiment
-    'nucl-th',         // Nuclear Theory
-    'quant-ph',        // Quantum Physics
-
-    // ── Physics: General Physics subcategories ─────────────────────────
-    'physics.acc-ph',  // Accelerator Physics
-    'physics.ao-ph',   // Atmospheric and Oceanic Physics
-    'physics.app-ph',  // Applied Physics
-    'physics.atm-clus',// Atomic and Molecular Clusters
-    'physics.atom-ph', // Atomic Physics
-    'physics.bio-ph',  // Biological Physics
-    'physics.chem-ph', // Chemical Physics
-    'physics.class-ph',// Classical Physics
-    'physics.comp-ph', // Computational Physics
-    'physics.data-an', // Data Analysis, Statistics and Probability
-    'physics.flu-dyn', // Fluid Dynamics
-    'physics.geo-ph',  // Geophysics
-    'physics.ins-det', // Instrumentation and Detectors
-    'physics.med-ph',  // Medical Physics
-    'physics.optics',  // Optics
-    'physics.plasm-ph',// Plasma Physics
-    'physics.pop-ph',  // Popular Physics
-    'physics.soc-ph',  // Physics and Society
-    'physics.space-ph',// Space Physics
-
-    // ── Nonlinear Sciences ─────────────────────────────────────────────
-    'nlin.AO', // Adaptation and Self-Organizing Systems
-    'nlin.CD', // Chaotic Dynamics
-    'nlin.CG', // Cellular Automata and Lattice Gases
-    'nlin.PS', // Pattern Formation and Solitons
-    'nlin.SI', // Exactly Solvable and Integrable Systems
-  ];
-
   /**
-   * Fetch papers from ALL categories, `perCategory` papers each.
-   * Requests are batched (10 at a time) with a short pause to avoid
-   * hammering the arXiv API. Results are deduplicated by paper ID.
+   * Fetch papers from all grouped RSS feeds.
+   * Returns deduplicated ArxivData[] sorted newest first.
    *
-   * @param perCategory  papers to fetch per category (default 3)
+   * @param limitPerFeed  max papers to take from each combined feed (default 30)
    */
-  public static async getRandomPapers(perCategory: number = 3): Promise<ArxivData[]> {
-    const BATCH_SIZE = 10;      // concurrent requests per batch
-    const BATCH_DELAY_MS = 600; // pause between batches (ms)
-
+  public static async getRandomPapers(limitPerFeed: number = 30): Promise<ArxivData[]> {
+    const seenIds = new Set<string>();
     const allPapers: ArxivData[] = [];
-    const seen = new Set<string>();
 
-    const fetchCategory = async (category: string): Promise<ArxivData[]> => {
-      try {
-        const start = Math.floor(Math.random() * 200);
-        const response = await axios.get(this.BASE, {
-          params: {
-            search_query: `cat:${category}`,
-            start,
-            max_results: perCategory,
-            sortBy: 'lastUpdatedDate',
-            sortOrder: 'descending',
-          },
-          timeout: 10_000,
-        });
+    const results = await Promise.allSettled(
+      ARXIV_RSS_FEEDS.map(feed => this.fetchFeed(feed, limitPerFeed))
+    );
 
-        const parser = new XMLParser({
-          ignoreAttributes: false,
-          attributeNamePrefix: '@_',
-        });
-        const parsed = parser.parse(response.data);
-        const entries = parsed.feed?.entry;
-        if (!entries) return [];
-
-        const entriesArray = Array.isArray(entries) ? entries : [entries];
-        return entriesArray.map((entry: any) => {
-          const links = Array.isArray(entry.link) ? entry.link : [entry.link];
-          const pdfLink = links.find((l: any) => l['@_title'] === 'pdf' || l['@_type'] === 'application/pdf');
-          const htmlLink = links.find((l: any) => l['@_type'] === 'text/html' || l['@_rel'] === 'alternate');
-          const authorsRaw = Array.isArray(entry.author) ? entry.author : [entry.author];
-          const authors = authorsRaw.map((a: any) => a?.name).filter(Boolean);
-          return {
-            id: entry.id,
-            title: typeof entry.title === 'string' ? entry.title.replace(/\n/g, ' ').trim() : 'Unknown Title',
-            summary: typeof entry.summary === 'string' ? entry.summary.replace(/\n/g, ' ').trim() : '',
-            published_at: entry.published || new Date().toISOString(),
-            authors,
-            pdf_url: pdfLink ? pdfLink['@_href'] : undefined,
-            html_url: htmlLink ? htmlLink['@_href'] : entry.id,
-            category,
-          } as ArxivData;
-        });
-      } catch (err) {
-        console.warn(`[ArxivIntegration] Skipping category "${category}":`, err instanceof Error ? err.message : err);
-        return [];
-      }
-    };
-
-    // Process categories in batches to be polite to arXiv
-    for (let i = 0; i < this.CATEGORIES.length; i += BATCH_SIZE) {
-      const batch = this.CATEGORIES.slice(i, i + BATCH_SIZE);
-      const results = await Promise.all(batch.map(fetchCategory));
-
-      for (const papers of results) {
-        for (const paper of papers) {
-          if (!seen.has(paper.id)) {
-            seen.add(paper.id);
-            allPapers.push(paper);
-          }
-        }
-      }
-
-      // Pause between batches (skip pause after the last batch)
-      if (i + BATCH_SIZE < this.CATEGORIES.length) {
-        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS));
+    for (const result of results) {
+      if (result.status !== 'fulfilled') continue;
+      for (const paper of result.value) {
+        const id = extractArxivId(paper.html_url ?? paper.id);
+        if (seenIds.has(id)) continue;
+        seenIds.add(id);
+        allPapers.push(paper);
       }
     }
 
-    console.log(`[ArxivIntegration] Fetched ${allPapers.length} unique papers from ${this.CATEGORIES.length} categories`);
+    // Sort newest first
+    allPapers.sort((a, b) =>
+      new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+    );
+
+    console.log(`[ArxivIntegration] Fetched ${allPapers.length} unique papers from ${ARXIV_RSS_FEEDS.length} RSS feeds`);
     return allPapers;
+  }
+
+  private static async fetchFeed(feed: ArxivFeed, limit: number): Promise<ArxivData[]> {
+    try {
+      const parsed = await rssParser.parseURL(feed.url);
+
+      return (parsed.items ?? []).slice(0, limit).map((item): ArxivData => {
+        const link = item.link ?? item.guid ?? '';
+        const arxivId = extractArxivId(link);
+
+        // Author(s) — arXiv RSS uses dc:creator or author field
+        const authorRaw: string = (item as any).creator ?? (item as any).author ?? '';
+        const authors = authorRaw
+          .split(/,|;|\band\b/)
+          .map((a: string) => a.trim())
+          .filter(Boolean)
+          .slice(0, 5);
+
+        // Category — from item's arxiv:primary_category or fallback to feed's primaryCategory
+        const categoryTerm: string =
+          (item as any).arxivCategory?.['$']?.term ??
+          (item as any).arxivCategory ??
+          feed.primaryCategory;
+
+        // Abstract — RSS description contains the abstract (may have HTML)
+        const summary = stripHtml(item.contentSnippet ?? item.content ?? item.summary ?? '');
+
+        return {
+          id: arxivId,
+          title: (item.title ?? 'Untitled').replace(/\[.*?\]\s*/g, '').trim(),
+          summary,
+          published_at: item.isoDate ?? item.pubDate ?? new Date().toISOString(),
+          authors,
+          pdf_url: link.replace('/abs/', '/pdf/'),
+          html_url: link,
+          category: categoryTerm,
+        };
+      });
+    } catch (err) {
+      console.warn(
+        `[ArxivIntegration] Feed failed (${feed.primaryCategory}):`,
+        err instanceof Error ? err.message : String(err)
+      );
+      return [];
+    }
   }
 }

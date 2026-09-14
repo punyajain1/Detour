@@ -1,8 +1,15 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { XMLParser } from 'fast-xml-parser';
+import Parser from 'rss-parser';
 import { v4 as uuid } from 'uuid';
 import { AiNewsCard } from '../types/feed.types';
+
+// Use rss-parser for feeds that fast-xml-parser struggles with (CDATA, mixed content, entity expansion)
+const RSS_PARSER_FEEDS = new Set([
+  'Google AI Blog',
+  'AWS AI',
+]);
 
 // Deduplication helpers
 function normalizeUrl(url: string): string {
@@ -70,7 +77,7 @@ const AI_NEWS_FEEDS: FeedSource[] = [
   { company: 'NVIDIA AI', url: 'https://blogs.nvidia.com/feed/' },
   { company: 'AWS AI', url: 'https://aws.amazon.com/blogs/ai/feed/' },
   { company: 'TechCrunch AI', url: 'https://techcrunch.com/category/artificial-intelligence/feed/' },
-  { company: 'VentureBeat', url: 'https://venturebeat.com/feed/' },
+  { company: 'VentureBeat', url: 'https://venturebeat.com/feed/', extraHeaders: { 'Cache-Control': 'max-age=3600' } } as any,
   { company: 'The Information', url: 'https://news.google.com/rss/search?q=site:theinformation.com+(OpenAI+OR+Anthropic+OR+Google+OR+Microsoft+OR+Meta+OR+Apple+OR+AI+OR+startup+OR+funding)&hl=en-US&gl=US&ceid=US:en' },
   { company: 'The Decoder', url: 'https://the-decoder.com/feed/' },
   { company: 'MIT Technology Review AI', url: 'https://www.technologyreview.com/topic/artificial-intelligence/feed' },
@@ -112,18 +119,31 @@ export class AiNewsIntegration {
   }
 
   private static async fetchAllRssAtomFeeds(limitPerFeed: number): Promise<AiNewsCard[]> {
-    const promises = AI_NEWS_FEEDS.map(feed => this.fetchSingleFeed(feed, limitPerFeed));
+    const promises = AI_NEWS_FEEDS.map(feed => {
+      if (RSS_PARSER_FEEDS.has(feed.company)) {
+        return this.fetchSingleFeedWithRssParser(feed, limitPerFeed);
+      }
+      return this.fetchSingleFeed(feed, limitPerFeed);
+    });
     const results = await Promise.allSettled(promises);
     return results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
   }
 
   private static async fetchSingleFeed(feed: FeedSource, limit: number): Promise<AiNewsCard[]> {
     try {
-      const { data } = await axios.get(feed.url, { timeout: 15000 });
+      const extraHeaders = (feed as any).extraHeaders ?? {};
+      const { data } = await axios.get(feed.url, {
+        timeout: 15000,
+        headers: {
+          'User-Agent': 'Detour/1.0 (https://detour.app; feed aggregator)',
+          ...extraHeaders,
+        },
+      });
       const parser = new XMLParser({
         ignoreAttributes: false,
         attributeNamePrefix: '@_',
-        removeNSPrefix: true, // helps with content:encoded
+        removeNSPrefix: true,
+        processEntities: false, // fixes AWS AI entity expansion limit
       });
       const parsed = parser.parse(data);
 
@@ -147,6 +167,33 @@ export class AiNewsIntegration {
       return cards.slice(0, limit);
     } catch (err) {
       console.warn(`[AiNewsIntegration] Fetch failed for ${feed.company}:`, err instanceof Error ? err.message : String(err));
+      return [];
+    }
+  }
+
+  /** rss-parser handles CDATA, mixed content and Google/YouTube feeds better than fast-xml-parser */
+  private static async fetchSingleFeedWithRssParser(feed: FeedSource, limit: number): Promise<AiNewsCard[]> {
+    try {
+      const rssParser = new Parser({ timeout: 15000, maxRedirects: 5 });
+      const parsed = await rssParser.parseURL(feed.url);
+
+      return (parsed.items ?? []).slice(0, limit).map((item): AiNewsCard => ({
+        id: uuid(),
+        type: 'ai_news',
+        category: 'ai',
+        fetchedAt: new Date().toISOString(),
+        title: item.title ?? 'Untitled',
+        description: cheerio.load(item.contentSnippet ?? item.content ?? item.summary ?? '').text().trim().substring(0, 300),
+        url: item.link ?? '',
+        imageUrl: (item as any).enclosure?.url ?? (item as any)['media:thumbnail']?.['$']?.url,
+        metadata: {
+          source: feed.company,
+          authorOrCompany: item.creator ?? feed.company,
+          publishedAt: item.isoDate ?? new Date().toISOString(),
+        },
+      })).filter(c => c.url);
+    } catch (err) {
+      console.warn(`[AiNewsIntegration] rss-parser fetch failed for ${feed.company}:`, err instanceof Error ? err.message : String(err));
       return [];
     }
   }

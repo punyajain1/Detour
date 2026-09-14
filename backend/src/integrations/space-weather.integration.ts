@@ -45,7 +45,7 @@ function extractClassification(message: string): string | undefined {
 }
 
 export class SpaceWeatherIntegration {
-  private static ALERT_URL = 'https://services.swpc.noaa.gov/json/alerts.json';
+  private static ALERT_URL = 'https://services.swpc.noaa.gov/products/alerts.json';
   private static KP_URL = 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json';
 
   static async getAlerts(count: number = 10): Promise<SpaceWeatherCard[]> {
