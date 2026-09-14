@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { authRouter } from './routes/auth.routes';
 import { feedRouter } from './routes/feed.routes';
+import { syncRouter } from './routes/sync.routes';
 import { requireAuth } from './middleware/auth.middleware';
 
 export const app = express();
@@ -22,6 +23,7 @@ app.use(express.json());
 // ─────────────────────────────────────────────
 app.use('/api/auth', authRouter);
 app.use('/api/feed', feedRouter);
+app.use('/api/sync', syncRouter);
 
 // Route removed
 
