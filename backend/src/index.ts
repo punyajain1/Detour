@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import { app } from './app';
-import { startFeedSyncJob } from './jobs/feed-sync.job';
 import { runShuffle } from './jobs/shuffle.job';
 import { prisma } from './lib/prisma';
 
@@ -25,8 +24,7 @@ async function main() {
 ╚═══════════════════════════════════════╝
     `);
 
-    // Start the cron job for data fetching
-    startFeedSyncJob();
+    // Removed in-process cron job, running via Render Cron Job instead.
     
     
     // Also run it once immediately to initialize sortOrders
