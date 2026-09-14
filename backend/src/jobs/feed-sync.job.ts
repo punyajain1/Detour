@@ -38,6 +38,7 @@ import {
   ArxivData,
   SystemDesignData,
 } from '../types/feed.types';
+import { runWithConcurrencyLimit } from '../lib/concurrency';
 
 export function startFeedSyncJob(): void {
   cron.schedule(
@@ -117,36 +118,37 @@ export interface SyncResult {
 export async function runFeedSync(sources?: string[]): Promise<SyncResult> {
   const start = Date.now();
   const keys = sources?.length ? sources : Object.keys(SOURCE_FETCHERS);
+  let inserted = 0;
 
-  const fetches = keys.map(k => {
+  await runWithConcurrencyLimit(3, keys, async (k) => {
     const fn = SOURCE_FETCHERS[k];
-    if (!fn) return Promise.resolve<FeedCard[]>([]);
-    return fn().catch(err => {
+    if (!fn) return;
+    try {
+      const cards = await fn();
+      if (cards.length > 0) {
+        const dataToInsert = cards.map(c => ({
+          type: c.type,
+          category: c.category,
+          title: c.title,
+          description: (c as any).description || '',
+          url: (c as any).url || null,
+          imageUrl: c.imageUrl || null,
+          metadata: c.metadata ? JSON.parse(JSON.stringify(c.metadata)) : {},
+          fetchedAt: new Date(c.fetchedAt),
+          sortOrder: Math.random(),
+        }));
+        
+        const { count } = await prisma.feedCard.createMany({ data: dataToInsert });
+        inserted += count;
+      }
+    } catch (err: any) {
       console.warn(`[Sync] "${k}" failed:`, err?.message ?? err);
-      return [] as FeedCard[];
-    });
+    }
   });
 
-  const settled = await Promise.allSettled(fetches);
-  const cards = settled.flatMap(r => r.status === 'fulfilled' ? r.value : []);
-
-  if (cards.length === 0) {
+  if (inserted === 0) {
     return { inserted: 0, deleted: 0, sources: keys, durationMs: Date.now() - start };
   }
-
-  const dataToInsert = cards.map(c => ({
-    type: c.type,
-    category: c.category,
-    title: c.title,
-    description: (c as any).description || '',
-    url: (c as any).url || null,
-    imageUrl: c.imageUrl || null,
-    metadata: c.metadata ? JSON.parse(JSON.stringify(c.metadata)) : {},
-    fetchedAt: new Date(c.fetchedAt),
-    sortOrder: Math.random(),
-  }));
-
-  const { count: inserted } = await prisma.feedCard.createMany({ data: dataToInsert });
 
   // ── Per-type TTLs (full life before deletion) ─────────────────────────────
   // Values are derived from the "fades to half in" durations — each source's

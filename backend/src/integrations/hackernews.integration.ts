@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { HNStoryData, HackerNewsCard, AskHNCard, ShowHNCard, HNJobCard } from '../types/feed.types';
 import { v4 as uuid } from 'uuid';
+import { runWithConcurrencyLimit } from '../lib/concurrency';
 
 type HNFeedCategory = 'ai' | 'startups' | 'all';
 
@@ -244,10 +245,8 @@ export class HNIntegration {
 
       // Step 2: hydrate items — take up to `count` IDs (Firebase gives up to 500)
       const candidateIds = ids.slice(0, count);
-      const itemResults = await Promise.allSettled(
-        candidateIds.map((id) =>
-          axios.get<HNFirebaseItem>(`${FIREBASE}/item/${id}.json`, { timeout: 8_000 })
-        )
+      const itemResults = await runWithConcurrencyLimit(15, candidateIds, id =>
+        axios.get<HNFirebaseItem>(`${FIREBASE}/item/${id}.json`, { timeout: 8_000 })
       );
 
       const now = Date.now();
@@ -320,10 +319,8 @@ export class HNIntegration {
 
       // Step 2: hydrate items — fetch ALL available IDs (up to 200 from Firebase)
       const candidateIds = ids.slice(0, Math.min(count, ids.length));
-      const itemResults = await Promise.allSettled(
-        candidateIds.map((id) =>
-          axios.get<HNFirebaseItem>(`${FIREBASE}/item/${id}.json`, { timeout: 8_000 })
-        )
+      const itemResults = await runWithConcurrencyLimit(15, candidateIds, id =>
+        axios.get<HNFirebaseItem>(`${FIREBASE}/item/${id}.json`, { timeout: 8_000 })
       );
 
       const now = Date.now();

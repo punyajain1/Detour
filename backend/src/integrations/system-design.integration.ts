@@ -4,6 +4,7 @@ import type { AnyNode } from 'domhandler';
 import { XMLParser } from 'fast-xml-parser';
 import { v4 as uuid } from 'uuid';
 import { SystemDesignData } from '../types/feed.types';
+import { runWithConcurrencyLimit } from '../lib/concurrency';
 
 
 const SYSTEM_DESIGN_KEYWORDS = [
@@ -257,8 +258,8 @@ export class SystemDesignIntegration {
   // ───────────────────────────────────────────────────────────────────────────
 
   private static async fetchAllRssAtomFeeds(limitPerFeed: number): Promise<SystemDesignData[]> {
-    const results = await Promise.allSettled(
-      RSS_ATOM_FEEDS.map(feed => this.fetchSingleFeed(feed, limitPerFeed))
+    const results = await runWithConcurrencyLimit(10, RSS_ATOM_FEEDS, feed => 
+      this.fetchSingleFeed(feed, limitPerFeed)
     );
 
     return results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
@@ -358,8 +359,8 @@ export class SystemDesignIntegration {
   private static async fetchHNMultiQuery(limitPerQuery: number): Promise<SystemDesignData[]> {
     const oneMonthAgo = Math.floor(Date.now() / 1000) - 30 * 86400;
 
-    const results = await Promise.allSettled(
-      HN_QUERIES.map(query => this.fetchHNQuery(query, limitPerQuery, oneMonthAgo))
+    const results = await runWithConcurrencyLimit(5, HN_QUERIES, query => 
+      this.fetchHNQuery(query, limitPerQuery, oneMonthAgo)
     );
 
     return results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
@@ -405,8 +406,8 @@ export class SystemDesignIntegration {
   // ───────────────────────────────────────────────────────────────────────────
 
   private static async fetchScrapedSites(limit: number): Promise<SystemDesignData[]> {
-    const results = await Promise.allSettled(
-      SCRAPE_SITES.map(site => this.scrapeSite(site, limit))
+    const results = await runWithConcurrencyLimit(2, SCRAPE_SITES, site => 
+      this.scrapeSite(site, limit)
     );
 
     return results.flatMap(r => r.status === 'fulfilled' ? r.value : []);

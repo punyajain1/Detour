@@ -4,6 +4,7 @@ import { XMLParser } from 'fast-xml-parser';
 import Parser from 'rss-parser';
 import { v4 as uuid } from 'uuid';
 import { AiNewsCard } from '../types/feed.types';
+import { runWithConcurrencyLimit } from '../lib/concurrency';
 
 // Use rss-parser for feeds that fast-xml-parser struggles with (CDATA, mixed content, entity expansion)
 const RSS_PARSER_FEEDS = new Set([
@@ -119,13 +120,12 @@ export class AiNewsIntegration {
   }
 
   private static async fetchAllRssAtomFeeds(limitPerFeed: number): Promise<AiNewsCard[]> {
-    const promises = AI_NEWS_FEEDS.map(feed => {
+    const results = await runWithConcurrencyLimit(5, AI_NEWS_FEEDS, feed => {
       if (RSS_PARSER_FEEDS.has(feed.company)) {
         return this.fetchSingleFeedWithRssParser(feed, limitPerFeed);
       }
       return this.fetchSingleFeed(feed, limitPerFeed);
     });
-    const results = await Promise.allSettled(promises);
     return results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
   }
 
