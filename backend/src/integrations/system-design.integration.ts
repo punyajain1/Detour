@@ -122,24 +122,16 @@ const RSS_ATOM_FEEDS: FeedSource[] = [
   { company: 'Kubernetes', url: 'https://kubernetes.io/feed.xml', sourceType: 'infrastructure_blog' },
   { company: 'CNCF', url: 'https://www.cncf.io/feed/', sourceType: 'infrastructure_blog' },
   { company: 'Grafana', url: 'https://grafana.com/blog/index.xml', sourceType: 'infrastructure_blog' },
-  { company: 'Prometheus', url: 'https://prometheus.io/blog/index.xml', sourceType: 'infrastructure_blog' },
   // ── Engineering Blogs ──────────────────────────────────────────────────────
   { company: 'Meta Engineering', url: 'https://engineering.fb.com/feed/', sourceType: 'engineering_blog' },
-  { company: 'LinkedIn Engineering', url: 'https://engineering.linkedin.com/blog.rss.html', sourceType: 'engineering_blog' },
-  { company: 'Uber Engineering', url: 'https://www.uber.com/blog/engineering/rss/', sourceType: 'engineering_blog' },
   { company: 'Reddit Engineering', url: 'https://redditinc.com/blog/rss.xml', sourceType: 'engineering_blog' },
-  { company: 'DigitalOcean', url: 'https://www.digitalocean.com/blog/rss.xml', sourceType: 'engineering_blog' },
-  { company: 'Confluent', url: 'https://www.confluent.io/blog/feed/', sourceType: 'engineering_blog' },
   { company: 'HashiCorp', url: 'https://www.hashicorp.com/blog/feed.xml', sourceType: 'engineering_blog' },
   { company: 'Elastic', url: 'https://www.elastic.co/blog/feed', sourceType: 'engineering_blog' },
-  { company: 'Snowflake', url: 'https://www.snowflake.com/blog/feed/', sourceType: 'engineering_blog' },
-  { company: 'ClickHouse', url: 'https://clickhouse.com/blog/rss.xml', sourceType: 'engineering_blog' },
 
   // ── AI Engineering ─────────────────────────────────────────────────────────
   { company: 'OpenAI', url: 'https://openai.com/news/rss.xml', sourceType: 'ai_blog' },
-  { company: 'Anthropic', url: 'https://www.anthropic.com/news/rss.xml', sourceType: 'ai_blog' },
   { company: 'Google AI', url: 'https://blog.google/technology/ai/rss/', sourceType: 'ai_blog' },
-  { company: 'DeepMind', url: 'https://deepmind.google/discover/blog/rss.xml', sourceType: 'ai_blog' },
+  { company: 'DeepMind', url: 'https://deepmind.google/blog/rss.xml', sourceType: 'ai_blog' },
   { company: 'Hugging Face', url: 'https://huggingface.co/blog/feed.xml', sourceType: 'ai_blog' },
   { company: 'AWS AI', url: 'https://aws.amazon.com/blogs/machine-learning/feed/', sourceType: 'ai_blog' },
 
@@ -150,16 +142,12 @@ const RSS_ATOM_FEEDS: FeedSource[] = [
   { company: 'Netflix TechBlog', url: 'https://netflixtechblog.com/feed', sourceType: 'architecture_blog' },
 
   // ── Databases ──────────────────────────────────────────────────────────────
-  { company: 'PostgreSQL', url: 'https://www.postgresql.org/feeds/news.rss', sourceType: 'database_blog' },
   { company: 'Redis', url: 'https://redis.com/feed/', sourceType: 'database_blog' },
   { company: 'Yugabyte', url: 'https://www.yugabyte.com/blog/feed/', sourceType: 'database_blog' },
   { company: 'SingleStore', url: 'https://www.singlestore.com/blog/feed/', sourceType: 'database_blog' },
 
   // ── CNCF / Cloud Native ────────────────────────────────────────────────────
   { company: 'Istio', url: 'https://istio.io/latest/feed.xml', sourceType: 'infrastructure_blog' },
-  { company: 'Linkerd', url: 'https://linkerd.io/feed.xml', sourceType: 'infrastructure_blog' },
-  { company: 'Envoy', url: 'https://www.envoyproxy.io/feed.xml', sourceType: 'infrastructure_blog' },
-  { company: 'OpenTelemetry', url: 'https://opentelemetry.io/feed.xml', sourceType: 'infrastructure_blog' },
   { company: 'Helm', url: 'https://helm.sh/blog/index.xml', sourceType: 'infrastructure_blog' },
 
   // ── Security Engineering ───────────────────────────────────────────────────
@@ -169,7 +157,6 @@ const RSS_ATOM_FEEDS: FeedSource[] = [
 
   // ── Observability ──────────────────────────────────────────────────────────
   { company: 'Grafana Engineering', url: 'https://grafana.com/blog/index.xml', sourceType: 'observability_blog' },
-  { company: 'Honeycomb', url: 'https://www.honeycomb.io/blog/rss.xml', sourceType: 'observability_blog' },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
